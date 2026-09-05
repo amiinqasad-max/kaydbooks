@@ -1,0 +1,26 @@
+workflows:
+  expo-build:
+    name: Expo Build Workflow
+    max_build_duration: 60
+    environment:
+      node: 20
+      vars:
+        EXPO_USERNAME: $EXPO_USERNAME
+        EXPO_PASSWORD: $EXPO_PASSWORD
+      groups:
+        - expo
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Install EAS CLI
+        script: npm install -g eas-cli
+      - name: Login to Expo
+        script: eas login --username $EXPO_USERNAME --password $EXPO_PASSWORD
+      - name: Build Android
+        script: eas build --platform android --non-interactive
+      - name: Build iOS
+        script: eas build --platform ios --non-interactive
+    artifacts:
+      - '**/*.apk'
+      - '**/*.aab'
+      - '**/*.ipa'

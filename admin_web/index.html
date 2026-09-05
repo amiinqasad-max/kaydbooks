@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayd Books - Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Gate: no admin action below is reachable until a real Supabase
+         session exists. The actual authorization check happens server-side
+         via Row Level Security -- this gate only prevents a signed-out
+         operator from staring at an empty, error-throwing dashboard. -->
+    <div class="login-gate" id="login-gate">
+        <form class="login-card" id="login-form">
+            <h2><i class="fas fa-book"></i> Kayd Books Admin</h2>
+            <p>Sign in with an administrator account.</p>
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required autocomplete="current-password">
+            </div>
+            <div id="login-error" class="login-error" style="display:none;"></div>
+            <button type="submit" class="btn-primary">Sign In</button>
+        </form>
+    </div>
+
+    <div class="admin-container" id="admin-container" style="display:none;">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-book"></i> Kayd Books</h2>
+                <p>Admin Panel</p>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-page="upload">
+                    <i class="fas fa-upload"></i>
+                    <span>Upload Book</span>
+                </li>
+                <li class="nav-item" data-page="manage">
+                    <i class="fas fa-list"></i>
+                    <span>Manage Books</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Book Page -->
+            <div id="upload-page" class="page active">
+                <div class="page-header">
+                    <h1><i class="fas fa-upload"></i> Upload New Book</h1>
+                    <p>Add a new book to your library</p>
+                </div>
+
+                <form id="upload-form" class="upload-form">
+                    <!-- Book Information Section -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-info-circle"></i> Book Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="title">Title *</label>
+                                <input type="text" id="title" name="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="author">Author *</label>
+                                <input type="text" id="author" name="author" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="description">Description</label>
+                                <textarea id="description" name="description" rows="4"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <select id="category" name="category">
+                                    <option value="Fiction">Fiction</option>
+                                    <option value="Non-Fiction">Non-Fiction</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="History">History</option>
+                                    <option value="Biography">Biography</option>
+                                    <option value="Self-Help">Self-Help</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Health">Health</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-file-upload"></i> File Uploads</h3>
+                        <div class="upload-grid">
+                            <!-- Cover Image Upload -->
+                            <div class="upload-item">
+                                <label class="upload-label">
+                                    <i class="fas fa-image"></i>
+                                    <span>Cover Image *</span>
+                                    <input type="file" id="cover-file" accept="image/*" required>
+                                </label>
+                                <div class="upload-preview" id="cover-preview"></div>
+                            </div>
+
+                            <!-- PDF Upload -->
+                            <div class="upload-item">
+                                <label class="upload-label">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>PDF File *</span>
+                                    <input type="file" id="pdf-file" accept=".pdf" required>
+                                </label>
+                                <div class="upload-preview" id="pdf-preview"></div>
+                            </div>
+
+                            <!-- Audio Upload -->
+                            <div class="upload-item">
+                                <label class="upload-label">
+                                    <i class="fas fa-headphones"></i>
+                                    <span>Audio File (Optional)</span>
+                                    <input type="file" id="audio-file" accept="audio/*">
+                                </label>
+                                <div class="upload-preview" id="audio-preview"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div class="progress-section" id="progress-section" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-text" id="progress-text">Preparing upload...</div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary" id="upload-btn">
+                            <i class="fas fa-upload"></i>
+                            Upload Book
+                        </button>
+                        <button type="button" class="btn-secondary" id="clear-btn">
+                            <i class="fas fa-times"></i>
+                            Clear Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manage Books Page -->
+            <div id="manage-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-list"></i> Manage Books</h1>
+                    <p>View and manage your book library</p>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="Search books...">
+                    </div>
+                    <button class="btn-primary" id="refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <!-- Books Table -->
+                <div class="table-container">
+                    <table class="books-table" id="books-table">
+                        <thead>
+                            <tr>
+                                <th>Cover</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="books-tbody">
+                            <!-- Books will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading" id="loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading books...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <i class="fas fa-book-open"></i>
+                    <h3>No books found</h3>
+                    <p>Start by uploading your first book!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Book</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <form id="edit-form" class="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="edit-title">Title</label>
+                    <input type="text" id="edit-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-author">Author</label>
+                    <input type="text" id="edit-author" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-category">Category</label>
+                    <select id="edit-category">
+                        <option value="Fiction">Fiction</option>
+                        <option value="Non-Fiction">Non-Fiction</option>
+                        <option value="Science">Science</option>
+                        <option value="Technology">Technology</option>
+                        <option value="History">History</option>
+                        <option value="Biography">Biography</option>
+                        <option value="Self-Help">Self-Help</option>
+                        <option value="Business">Business</option>
+                        <option value="Health">Health</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <!-- File Upload Section -->
+                <div class="form-section">
+                    <h3>📁 Update Files (Optional)</h3>
+                    <p class="form-note">Leave empty to keep existing files</p>
+                    
+                    <div class="form-group">
+                        <label for="edit-cover">📷 New Cover Image</label>
+                        <input type="file" id="edit-cover" accept="image/*">
+                        <small>Current: <span id="current-cover">No cover</span></small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-pdf">📄 New PDF File</label>
+                        <input type="file" id="edit-pdf" accept=".pdf">
+                        <small>Current: <span id="current-pdf">No PDF</span></small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-audio">🎵 New Audio File</label>
+                        <input type="file" id="edit-audio" accept="audio/*">
+                        <small>Current: <span id="current-audio">No audio</span></small>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                    <button type="button" class="btn-secondary" id="cancel-edit">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-content">
+            <i class="notification-icon"></i>
+            <span class="notification-message"></span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

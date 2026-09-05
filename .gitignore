@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+admin_web/config_service.js
+admin_web/config.local.js
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Build artifacts
+*.tsbuildinfo
