@@ -17,14 +17,15 @@ import { useTranslation } from 'react-i18next';
 import safeNotificationService from '../services/safeNotificationService';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  addDownloadRecord,
-  getDownloadRecord,
-  removeDownloadRecord,
   getReadingProgressDetailed,
   addToFavorites,
   removeFromFavorites,
   getFavoriteStatus,
+  addToUserDownloads,
+  removeFromUserDownloads,
+  checkIfDownloaded,
 } from '../services/supabase';
+import { downloadAudioBook, downloadBookPdf, deleteDownload as deleteLocalFile } from '../services/downloadManager';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, SHADOWS } from '../constants/theme';
 
 const BookDetailScreen = ({ route, navigation }) => {
@@ -32,7 +33,8 @@ const BookDetailScreen = ({ route, navigation }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [isFav, setIsFav] = useState(false);
-  const [isDownloaded, setIsDownloaded] = useState(false);
+  const [isAudioDownloaded, setIsAudioDownloaded] = useState(false);
+  const [isPdfDownloaded, setIsPdfDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [readingProgress, setReadingProgress] = useState(0);
@@ -53,12 +55,77 @@ const BookDetailScreen = ({ route, navigation }) => {
     }
   };
 
+  // PHASE 1: these used to be stubbed to "Download Disabled" / "Delete
+  // Disabled" alerts -- offline reading/listening did not actually work.
+  // Now backed by services/downloadManager.js, which resolves an
+  // authorized (signed, RLS-checked) URL before writing anything to disk.
   const handleDownloadAudio = async () => {
-    Alert.alert('Download Disabled', 'Downloads have been disabled.');
+    if (!user) {
+      Alert.alert('Sign in required', 'Sign in to download audiobooks.');
+      return;
+    }
+    try {
+      setIsDownloading(true);
+      setDownloadProgress(0);
+      const result = await downloadAudioBook(book, user.id, setDownloadProgress);
+      await addToUserDownloads(user.id, book.id, {
+        download_type: 'audio',
+        file_path: result.localUri,
+        file_size: result.fileSize,
+      });
+      setIsAudioDownloaded(true);
+      showToast('Available offline');
+    } catch (error) {
+      Alert.alert('Download failed', error.message || 'Please try again.');
+    } finally {
+      setIsDownloading(false);
+      setDownloadProgress(0);
+    }
   };
 
-  const deleteDownload = async () => {
-    Alert.alert('Delete Disabled', 'Delete function has been disabled.');
+  const handleDownloadPdf = async () => {
+    if (!user) {
+      Alert.alert('Sign in required', 'Sign in to download books.');
+      return;
+    }
+    try {
+      setIsDownloading(true);
+      setDownloadProgress(0);
+      const result = await downloadBookPdf(book, user.id, setDownloadProgress);
+      await addToUserDownloads(user.id, book.id, {
+        download_type: 'pdf',
+        file_path: result.localUri,
+        file_size: result.fileSize,
+      });
+      setIsPdfDownloaded(true);
+      showToast('Available offline');
+    } catch (error) {
+      Alert.alert('Download failed', error.message || 'Please try again.');
+    } finally {
+      setIsDownloading(false);
+      setDownloadProgress(0);
+    }
+  };
+
+  const deleteDownload = async (kind = 'audio') => {
+    if (!user) return;
+    Alert.alert('Remove download?', 'This book will no longer be available offline.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteLocalFile(book, kind);
+            await removeFromUserDownloads(user.id, book.id, kind);
+            if (kind === 'audio') setIsAudioDownloaded(false);
+            else setIsPdfDownloaded(false);
+          } catch (error) {
+            Alert.alert('Could not remove download', error.message);
+          }
+        },
+      },
+    ]);
   };
 
   const toggleFavorite = async () => {
@@ -91,8 +158,12 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   const checkDownloadStatus = async () => {
     try {
-      const downloadRecord = await getDownloadRecord(user.id, book.id);
-      setIsDownloaded(!!downloadRecord);
+      const [audio, pdf] = await Promise.all([
+        checkIfDownloaded(user.id, book.id, 'audio'),
+        checkIfDownloaded(user.id, book.id, 'pdf'),
+      ]);
+      setIsAudioDownloaded(audio);
+      setIsPdfDownloaded(pdf);
     } catch (error) {
       console.error('Error checking download status:', error);
     }
@@ -172,10 +243,13 @@ const BookDetailScreen = ({ route, navigation }) => {
                 navigation.navigate('PDFViewScreen', {
                   // Prefer the storage path so the reader resolves a
                   // fresh, short-lived Signed URL at open time (protected
-                  // by RLS) instead of a permanent public link.
+                  // by RLS) instead of a permanent public link. Also pass
+                  // the full `book` so the reader can check for/read from
+                  // a local offline copy and offer "Continue with Audio".
                   pdfPath: book.pdf_path || null,
                   bookId: book.id,
-                  pdfUrl: book.pdf_url // legacy fallback for pre-migration rows
+                  pdfUrl: book.pdf_url, // legacy fallback for pre-migration rows
+                  book,
                 });
               }}
             >
@@ -183,14 +257,22 @@ const BookDetailScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           )}
 
+          {book.pdf_url && (
+            <TouchableOpacity
+              style={[styles.actionButton, isPdfDownloaded ? styles.offlineButton : styles.downloadButton]}
+              disabled={isDownloading}
+              onPress={isPdfDownloaded ? () => deleteDownload('pdf') : handleDownloadPdf}
+            >
+              <Text style={styles.buttonText}>
+                {isPdfDownloaded ? '✓ Downloaded (tap to remove)' : isDownloading ? `Downloading... ${downloadProgress}%` : '⬇️ Download for Offline'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {book.audio_url && book.audio_url.trim() !== '' ? (
             <TouchableOpacity
               style={[styles.actionButton, styles.primaryButton]}
-              onPress={() => {
-                console.log('🎵 Navigating to AudioPlayer with book:', book.title);
-                console.log('🎵 Audio URL:', book.audio_url);
-                navigation.navigate('AudioPlayer', { book });
-              }}
+              onPress={() => navigation.navigate('AudioPlayer', { book })}
             >
               <Text style={styles.buttonText}>🎧 Listen Audio</Text>
             </TouchableOpacity>
@@ -206,18 +288,17 @@ const BookDetailScreen = ({ route, navigation }) => {
           {book.audio_url && (
             <TouchableOpacity
               style={[
-                styles.actionButton, 
-                isDownloaded ? styles.offlineButton : styles.downloadButton
+                styles.actionButton,
+                isAudioDownloaded ? styles.offlineButton : styles.downloadButton
               ]}
               disabled={isDownloading}
-              onPress={isDownloaded ? () => navigation.navigate('AudioPlayer', { book, isOffline: true }) : handleDownloadAudio}
-              onLongPress={isDownloaded ? deleteDownload : undefined}
+              onPress={isAudioDownloaded ? () => deleteDownload('audio') : handleDownloadAudio}
             >
               <Text style={styles.buttonText}>
-                {isDownloaded 
-                  ? "🎧 Play Offline" 
-                  : isDownloading 
-                    ? "Downloading..." 
+                {isAudioDownloaded
+                  ? "✓ Downloaded (tap to remove)"
+                  : isDownloading
+                    ? `Downloading... ${downloadProgress}%`
                     : "⬇️ Download Audio"}
               </Text>
             </TouchableOpacity>

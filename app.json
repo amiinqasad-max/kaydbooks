@@ -26,7 +26,9 @@
         "backgroundColor": "#FFFFFF"
       },
       "permissions": [
-        "android.permission.WAKE_LOCK"
+        "android.permission.WAKE_LOCK",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ]
     },
     "web": {
@@ -38,7 +40,9 @@
       "expo-font",
       "expo-asset",
       "expo-av",
-      "expo-video"
+      "expo-video",
+      "react-native-track-player",
+      "react-native-pdf"
     ]
   }
 }

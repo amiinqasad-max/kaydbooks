@@ -54,15 +54,15 @@ const DownloadsLibraryScreen = ({ navigation }) => {
   };
 
   const filterDownloads = () => {
-    // Filter out PDF downloads - only show audio downloads
-    const audioOnlyDownloads = downloads.filter(item => item.download_type === 'audio');
-    
+    // PHASE 1: downloaded PDFs used to be hidden here because PDF
+    // downloads were disabled app-wide (see services/supabase.js's
+    // addToUserDownloads). Offline ebook reading is now real -- show both.
     if (!searchQuery.trim()) {
-      setFilteredDownloads(audioOnlyDownloads);
+      setFilteredDownloads(downloads);
       return;
     }
 
-    const filtered = audioOnlyDownloads.filter(item => 
+    const filtered = downloads.filter(item =>
       item.books?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.books?.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.books?.category?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -95,12 +95,22 @@ const DownloadsLibraryScreen = ({ navigation }) => {
   };
 
   const openBook = (downloadItem) => {
+    const book = downloadItem.books;
     if (downloadItem.download_type === 'audio') {
-      navigation.navigate('AudioPlayer', { book: downloadItem.books });
+      navigation.navigate('AudioPlayer', { book });
     } else if (downloadItem.download_type === 'pdf') {
-      navigation.navigate('PDFViewer', { book: downloadItem.books });
+      // PDFViewScreen resolves the local downloaded file automatically
+      // when one exists (see contexts/AudioPlayerContext.js's sibling
+      // logic in PDFViewScreen for the pdf path) -- this route name and
+      // param shape must match App.js's registered "PDFViewScreen" screen.
+      navigation.navigate('PDFViewScreen', {
+        book,
+        bookId: book?.id,
+        pdfPath: book?.pdf_path || null,
+        pdfUrl: book?.pdf_url,
+      });
     } else {
-      navigation.navigate('BookDetail', { book: downloadItem.books });
+      navigation.navigate('BookDetail', { book });
     }
   };
 

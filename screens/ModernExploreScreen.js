@@ -180,7 +180,12 @@ const ModernExploreScreen = ({ navigation }) => {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.readBtn}
-                onPress={() => navigation.navigate('PDFViewer', { book: item })}
+                onPress={() => navigation.navigate('PDFViewScreen', {
+                  // PHASE 1 FIX: "PDFViewer" isn't a registered route name
+                  // (App.js registers "PDFViewScreen") -- this Read button
+                  // silently did nothing.
+                  book: item, bookId: item?.id, pdfPath: item?.pdf_path || null, pdfUrl: item?.pdf_url,
+                })}
               >
                 <MaterialCommunityIcons name="book-open" size={16} color={COLORS.BUTTON_TEXT} />
                 <Text style={styles.actionBtnText}>Read</Text>

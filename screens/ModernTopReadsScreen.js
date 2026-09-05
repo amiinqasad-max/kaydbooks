@@ -157,7 +157,11 @@ const ModernTopReadsScreen = ({ navigation }) => {
                   title="📖 Read"
                   buttonStyle={styles.readButton}
                   titleStyle={styles.readButtonText}
-                  onPress={() => navigation.navigate('PDFViewer', { book: item })}
+                  onPress={() => navigation.navigate('PDFViewScreen', {
+                    // PHASE 1 FIX: "PDFViewer" isn't a registered route
+                    // name (App.js registers "PDFViewScreen").
+                    book: item, bookId: item?.id, pdfPath: item?.pdf_path || null, pdfUrl: item?.pdf_url,
+                  })}
                 />
                 
                 {item.audio_url && (

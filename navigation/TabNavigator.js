@@ -1,9 +1,11 @@
 import React from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import { COLORS } from '../constants/theme';
+import MiniPlayer from '../components/MiniPlayer';
 
 // Import screens
 import ModernHomeScreen from '../screens/ModernHomeScreen';
@@ -18,6 +20,7 @@ const TabNavigator = () => {
   const { currentLanguage } = useLanguage();
   
   return (
+    <View style={{ flex: 1 }}>
     <Tab.Navigator
       key={currentLanguage} // Force re-render when language changes
       screenOptions={({ route }) => ({
@@ -82,6 +85,15 @@ const TabNavigator = () => {
         }}
       />
     </Tab.Navigator>
+    {/* Persistent across Home/Library/Explore/Profile; hides itself via
+        MiniPlayer's own `if (!currentBook) return null` when nothing is
+        loaded. Absolutely positioned just above the 60px tab bar
+        (tabBarStyle.height above) rather than inside a tab screen, so it
+        survives switching tabs instead of resetting per-screen. */}
+    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 60 }}>
+      <MiniPlayer />
+    </View>
+    </View>
   );
 };
 

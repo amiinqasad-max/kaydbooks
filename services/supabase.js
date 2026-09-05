@@ -174,16 +174,29 @@ export const addDownloadRecord = async (userId, bookId, filePath, fileSize = nul
   }
 };
 
-export const getDownloadRecord = async (userId, bookId) => {
-  const { data, error } = await supabase
+// downloadType is optional for backward compatibility with older rows that
+// predate the download_type column, but PHASE 1 FIX: a book can now be
+// downloaded as audio AND pdf independently, so callers that care which
+// one (BookDetailScreen showing two separate download buttons) must pass
+// it -- otherwise "downloaded" for one format incorrectly flips both
+// buttons to "downloaded".
+export const getDownloadRecord = async (userId, bookId, downloadType = null) => {
+  let query = supabase
     .from('downloads')
     .select('*')
     .eq('user_id', userId)
-    .eq('book_id', bookId)
-    .single();
+    .eq('book_id', bookId);
 
-  if (error && error.code !== 'PGRST116') throw error;
-  return data;
+  if (downloadType) query = query.eq('download_type', downloadType);
+
+  // .limit(1) rather than .single()/.maybeSingle(): with no downloadType
+  // filter, a book downloaded as BOTH audio and pdf legitimately has two
+  // rows for this (user, book) pair, which .single() would reject as an
+  // error instead of just returning one of them.
+  const { data, error } = await query.order('download_date', { ascending: false }).limit(1);
+
+  if (error) throw error;
+  return data?.[0] || null;
 };
 
 export const removeDownloadRecord = async (userId, bookId) => {
@@ -531,12 +544,20 @@ export const addReadingSession = async (userId, bookId, sessionData) => {
 };
 
 // User Downloads Functions
+//
+// PHASE 1 CHANGE: this used to hard-block download_type === 'pdf' with a
+// thrown error, and BookDetailScreen's download buttons were stubbed to
+// show "Download Disabled" / "Delete Disabled" alerts -- offline reading
+// did not actually work for either format. Offline ebook reading is an
+// explicit Phase 1 requirement, and the original restriction's rationale
+// (a book's PDF was a permanent, unauthenticated public URL, so "download"
+// vs "just open the link" was a meaningless distinction) no longer applies
+// now that PDF/audio are served via short-lived, RLS-checked signed URLs
+// (see services/downloadManager.js and migration 003's storage policies) --
+// a user who isn't authorized for a premium book can't obtain the signed
+// URL needed to download it in the first place, same as for reading it.
 export const addToUserDownloads = async (userId, bookId, downloadData) => {
-  // Only allow audio downloads - restrict PDF downloads
-  if (downloadData.download_type === 'pdf') {
-    throw new Error('PDF downloads are not allowed. Only audio files can be downloaded.');
-  }
-  
+
   const { data, error } = await supabase
     .from('downloads')
     .insert([{
@@ -563,8 +584,8 @@ export const removeFromUserDownloads = async (userId, bookId, downloadType) => {
   if (error) throw error;
 };
 
-export const checkIfDownloaded = async (userId, bookId) => {
-  const record = await getDownloadRecord(userId, bookId);
+export const checkIfDownloaded = async (userId, bookId, downloadType = null) => {
+  const record = await getDownloadRecord(userId, bookId, downloadType);
   return !!record;
 };
 
@@ -928,4 +949,145 @@ export const deleteBook = async (id) => {
   } catch (error) {
     throw new Error(`Book deletion error: ${error.message}`);
   }
+};
+
+// ========================================
+// PHASE 1: CHAPTERS, BOOKMARKS & NOTES
+// (supabase/migrations/003_authorization_and_schema_fixes.sql +
+//  004_bookmarks_notes_and_read_listen_sync.sql)
+// ========================================
+
+export const getChaptersForBook = async (bookId) => {
+  const { data, error } = await supabase
+    .from('chapters')
+    .select('*')
+    .eq('book_id', bookId)
+    .order('chapter_index', { ascending: true });
+
+  if (error) {
+    console.error('getChaptersForBook failed:', error.message);
+    throw error;
+  }
+  return data || [];
+};
+
+// --- Ebook bookmarks (page-anchored -- see 004's comment on why PDF
+// bookmarks/notes are page-anchored rather than text-anchored) ---
+
+export const addBookBookmark = async (userId, bookId, page, { chapterId = null, label = null } = {}) => {
+  const { data, error } = await supabase
+    .from('book_bookmarks')
+    .insert([{ user_id: userId, book_id: bookId, page, chapter_id: chapterId, label }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getBookBookmarks = async (userId, bookId) => {
+  const { data, error } = await supabase
+    .from('book_bookmarks')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('book_id', bookId)
+    .order('page', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+};
+
+export const deleteBookBookmark = async (userId, bookmarkId) => {
+  const { error } = await supabase
+    .from('book_bookmarks')
+    .delete()
+    .eq('id', bookmarkId)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+};
+
+export const addBookNote = async (userId, bookId, page, body, bookmarkId = null) => {
+  if (!body || !body.trim()) throw new Error('A note cannot be empty.');
+
+  const { data, error } = await supabase
+    .from('book_notes')
+    .insert([{ user_id: userId, book_id: bookId, page, body: body.trim(), bookmark_id: bookmarkId }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getBookNotes = async (userId, bookId) => {
+  const { data, error } = await supabase
+    .from('book_notes')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('book_id', bookId)
+    .order('page', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+};
+
+export const updateBookNote = async (userId, noteId, body) => {
+  if (!body || !body.trim()) throw new Error('A note cannot be empty.');
+
+  const { data, error } = await supabase
+    .from('book_notes')
+    .update({ body: body.trim() })
+    .eq('id', noteId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteBookNote = async (userId, noteId) => {
+  const { error } = await supabase
+    .from('book_notes')
+    .delete()
+    .eq('id', noteId)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+};
+
+// --- Audiobook bookmarks ---
+
+export const addAudioBookmark = async (userId, bookId, positionSeconds, { chapterId = null, label = null } = {}) => {
+  const { data, error } = await supabase
+    .from('audio_bookmarks')
+    .insert([{ user_id: userId, book_id: bookId, position_seconds: positionSeconds, chapter_id: chapterId, label }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getAudioBookmarks = async (userId, bookId) => {
+  const { data, error } = await supabase
+    .from('audio_bookmarks')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('book_id', bookId)
+    .order('position_seconds', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+};
+
+export const deleteAudioBookmark = async (userId, bookmarkId) => {
+  const { error } = await supabase
+    .from('audio_bookmarks')
+    .delete()
+    .eq('id', bookmarkId)
+    .eq('user_id', userId);
+
+  if (error) throw error;
 };

@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { getBooks, getContinueReadingBooks, getFavorites } from '../services/supabase';
+import { getBooks, getContinueReadingBooks, getContinueListeningBooks, getFavorites } from '../services/supabase';
 import { sanitizeBookArray, sanitizeNestedBookRecord, sanitizeBookRecord } from '../utils/bookSanitizer';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
 
@@ -30,6 +30,7 @@ const ModernHomeScreen = ({ navigation }) => {
   const [topReads, setTopReads] = useState([]);
   const [topAudiobooks, setTopAudiobooks] = useState([]);
   const [continueReading, setContinueReading] = useState([]);
+  const [continueListening, setContinueListening] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,14 +66,19 @@ const ModernHomeScreen = ({ navigation }) => {
       }));
       setCategories(categoryData.slice(0, 6)); // Show max 6 categories
       
-      // Get continue reading if user is logged in
+      // Get continue reading / continue listening if user is logged in.
+      // These are two independent queries against reading_progress and
+      // audio_progress respectively (see services/supabase.js) -- a book
+      // can appear in both if the user reads AND listens to it.
       if (user) {
-        const continueReadingData = await getContinueReadingBooks(user.id);
-        // DOUBLE SAFETY: Additional sanitization for nested book records
-        const safeContinueReading = continueReadingData.map(sanitizeNestedBookRecord);
-        setContinueReading(safeContinueReading.slice(0, 5));
+        const [continueReadingData, continueListeningData] = await Promise.all([
+          getContinueReadingBooks(user.id),
+          getContinueListeningBooks(user.id),
+        ]);
+        setContinueReading(continueReadingData.map(sanitizeNestedBookRecord).slice(0, 5));
+        setContinueListening(continueListeningData.map(sanitizeNestedBookRecord).slice(0, 5));
       }
-      
+
     } catch (error) {
       console.error('Error loading home data:', error);
     } finally {
@@ -182,9 +188,14 @@ const ModernHomeScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.continueCard}
-        onPress={() => navigation.navigate('PDFViewer', { 
-          book: sanitizeBookRecord(book), // CRITICAL: Sanitize before navigation
-          startPage: currentPage 
+        onPress={() => navigation.navigate('PDFViewScreen', {
+          // PHASE 1 FIX: this pointed at a route named "PDFViewer", which
+          // doesn't exist (App.js registers "PDFViewScreen") -- tapping
+          // "Continue Reading" from Home silently did nothing.
+          book,
+          bookId: book?.id,
+          pdfPath: book?.pdf_path || null,
+          pdfUrl: book?.pdf_url,
         })}
         activeOpacity={0.8}
       >
@@ -212,6 +223,29 @@ const ModernHomeScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 };
+
+  const renderContinueListeningCard = ({ item }) => {
+    const rawBook = item?.books || item || {};
+    const book = sanitizeBookRecord(rawBook);
+    const progressPct = item?.progress_percentage || 0;
+
+    return (
+      <TouchableOpacity
+        style={styles.continueCard}
+        onPress={() => navigation.navigate('AudioPlayer', { book, startPosition: item?.current_position || 0 })}
+        activeOpacity={0.8}
+      >
+        <Image source={{ uri: book?.cover_url }} style={styles.continueCover} resizeMode="cover" />
+        <View style={styles.continueInfo}>
+          <Text style={styles.continueTitle} numberOfLines={1}>{book?.title || 'Unknown Title'}</Text>
+          <Text style={styles.continueProgress}>{Math.round(progressPct)}% complete</Text>
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${progressPct}%` }]} />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderCategoryCard = ({ item }) => (
     <TouchableOpacity
@@ -314,6 +348,27 @@ const ModernHomeScreen = ({ navigation }) => {
               data={continueReading}
               renderItem={renderContinueReadingCard}
               keyExtractor={(item) => item.id.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          </View>
+        )}
+
+        {/* Continue Listening Section */}
+        {user && continueListening.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>🎧 Continue Listening</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Library')}>
+                <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={continueListening}
+              renderItem={renderContinueListeningCard}
+              keyExtractor={(item) => `listen-${item.id.toString()}`}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}

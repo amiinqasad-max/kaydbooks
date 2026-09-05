@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { LogBox } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import AppInitializer from './components/AppInitializer';
 import { COLORS } from './constants/theme';
@@ -176,7 +177,13 @@ export default function App() {
     <PaperProvider theme={paperTheme}>
       <LanguageProvider>
         <AuthProvider>
-          <Navigation />
+          {/* Mounted once at the app root, above navigation, so the audio
+              engine and its state survive navigating between screens --
+              this is what makes a persistent mini-player and real
+              background playback possible (see contexts/AudioPlayerContext.js). */}
+          <AudioPlayerProvider>
+            <Navigation />
+          </AudioPlayerProvider>
           <StatusBar style="light" backgroundColor={COLORS.BACKGROUND} />
         </AuthProvider>
       </LanguageProvider>
