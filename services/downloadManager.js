@@ -57,10 +57,29 @@ async function resolveDownloadUrl(book, kind) {
   throw new Error(`This book has no ${kind === 'audio' ? 'audio' : 'readable'} file available.`);
 }
 
+// PHASE 1.5: guards against a real race -- a fast double-tap on Download,
+// or two screens independently triggering a download for the same book,
+// could previously both pass the "does a file already exist" check before
+// either had written anything, and both start writing to the SAME fileUri
+// concurrently. Keyed by the target file path so this only serializes
+// downloads that would actually collide, not unrelated ones.
+const inFlightDownloads = new Map();
+
 async function downloadFile(book, kind, extension, onProgress) {
   await ensureDownloadDir();
   const fileUri = DOWNLOAD_DIR + safeFileName(book, extension);
 
+  const existingInFlight = inFlightDownloads.get(fileUri);
+  if (existingInFlight) return existingInFlight;
+
+  const downloadPromise = performDownload(book, kind, fileUri, onProgress).finally(() => {
+    inFlightDownloads.delete(fileUri);
+  });
+  inFlightDownloads.set(fileUri, downloadPromise);
+  return downloadPromise;
+}
+
+async function performDownload(book, kind, fileUri, onProgress) {
   // A previous, complete download already exists -- don't re-download.
   const existing = await FileSystem.getInfoAsync(fileUri);
   if (existing.exists && existing.size > 0) {

@@ -1091,3 +1091,60 @@ export const deleteAudioBookmark = async (userId, bookmarkId) => {
 
   if (error) throw error;
 };
+
+// ========================================
+// PHASE 1.5: AUTHORITATIVE SUBSCRIPTION READ
+// ========================================
+//
+// This is the ONLY function that should decide "does this user have a paid
+// subscription" -- it reads the `subscriptions` table created by
+// supabase/migrations/003_authorization_and_schema_fixes.sql, which is
+// writable exclusively by the verify-receipt / verify-local-payment Edge
+// Functions (service_role). See services/premiumSubscriptionService.js's
+// Phase 1.5 fix notes for why this replaced a client-side check against
+// `users.premium_access` -- that column could be, and was, set directly by
+// client code with no server verification at all.
+export const getActiveSubscription = async (userId) => {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .in('status', ['active', 'in_grace_period'])
+    .gt('expires_at', new Date().toISOString())
+    .order('expires_at', { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.error('getActiveSubscription failed:', error.message);
+    throw error;
+  }
+  return data?.[0] || null;
+};
+
+// Calls the server-side receipt verification Edge Function. This is the
+// ONLY correct way to grant paid premium access -- it runs on Supabase's
+// servers with the service_role key (never exposed to the client) and
+// actually contacts Apple/Google to confirm the purchase is real before
+// writing to `subscriptions`. See supabase/functions/verify-receipt.
+//
+// NOT VERIFIED — requires a real App Store/Play Store sandbox purchase to
+// exercise end-to-end; not exercised by this repo's Jest suite.
+export const verifyPurchaseWithServer = async ({ receipt, platform, plan }) => {
+  const { data, error } = await supabase.functions.invoke('verify-receipt', {
+    body: { receipt, platform, plan },
+  });
+
+  if (error) throw new Error(error.message || 'Receipt verification failed');
+  if (data?.error) throw new Error(data.error);
+  return data;
+};
+
+export const verifyLocalPaymentWithServer = async ({ transactionCode, plan }) => {
+  const { data, error } = await supabase.functions.invoke('verify-local-payment', {
+    body: { transactionCode, plan },
+  });
+
+  if (error) throw new Error(error.message || 'Payment verification failed');
+  if (data?.error) throw new Error(data.error);
+  return data;
+};

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, verifyPurchaseWithServer, getActiveSubscription } from './supabase';
 // Conditional import for in-app purchases (requires development build)
 let InAppPurchases = null;
 try {
@@ -315,252 +315,144 @@ export const initializeSubscriptions = async () => {
 };
 
 // Purchase subscription (Monthly or Yearly)
+// -------------------------------------------------------------------------
+// PHASE 1.5 SECURITY FIX -- read this before touching this function again.
+//
+// The previous implementation of this file had THREE separate ways for a
+// client to grant itself permanent paid premium access with zero real
+// verification:
+//   1. purchaseSubscription(), when `InAppPurchases` was unavailable (i.e.
+//      every Expo Go session -- this project's default dev environment),
+//      unconditionally called activatePremiumSubscription() with a fake
+//      `mock_${Date.now()}` transaction id. Tapping "Subscribe" in Expo Go
+//      granted real premium for free, always.
+//   2. verifyPurchaseReceipt() did not verify anything: its own comment
+//      admitted "For now, we'll do basic client-side validation", and that
+//      validation was `if (purchase.transactionId && purchase.productId)`
+//      -- any two non-empty strings. It then wrote `verified: true` into
+//      purchase_transactions itself, and activatePremiumSubscription()
+//      trusted that self-reported flag.
+//   3. activatePremiumSubscription() wrote premium_access/subscription_*
+//      directly onto the `users` row from the CLIENT. This is exactly the
+//      vulnerability class supabase/migrations/003_authorization_and_schema_fixes.sql's
+//      "DEFENSIVE CLEANUP" section revokes client write access for -- but
+//      revoking the grant only makes this code throw an RLS error, it
+//      doesn't fix the fact that the client believed it was allowed to
+//      grant itself premium in the first place.
+//
+// Fix: purchases are now verified by actually calling the verify-receipt
+// Edge Function (services/supabase.js's verifyPurchaseWithServer), which
+// runs server-side with the service_role key and writes to the
+// `subscriptions` table -- the client never writes a premium flag itself.
+// See supabase/functions/verify-receipt/index.ts.
+//
+// NOT VERIFIED — this has not been exercised against a real Apple/Google
+// sandbox purchase; expo-in-app-purchases requires a real device build to
+// even test the purchase prompt at all.
+// -------------------------------------------------------------------------
+
+const planFromProductId = (productId) => (productId?.includes('yearly') ? 'yearly' : 'monthly');
+
 export const purchaseSubscription = async (userId, productId) => {
   try {
-    // Purchasing subscription
-    
-    // Check if in-app purchases are available
     if (!InAppPurchases) {
-      // In-app purchases not available - simulating purchase for development
-      
-      // Simulate successful purchase for development
-      const mockPurchase = {
-        productId: productId,
-        transactionId: `mock_${Date.now()}`,
-        purchaseTime: Date.now()
-      };
-      
-      // Activate premium subscription with mock data
-      await activatePremiumSubscription(userId, productId, mockPurchase);
-      
-      return {
-        success: true,
-        productId: mockPurchase.productId,
-        transactionId: mockPurchase.transactionId,
-        purchaseTime: mockPurchase.purchaseTime,
-        mockMode: true
-      };
-    }
-    
-    // Request purchase from store
-    const { responseCode, results } = await InAppPurchases.purchaseItemAsync(productId);
-    
-    if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-      const purchase = results[0];
-      // Purchase successful
-      
-      // Verify receipt server-side (optional but recommended)
-      const verificationResult = await verifyPurchaseReceipt(userId, purchase);
-      
-      if (verificationResult.success) {
-        // Activate premium subscription
-        await activatePremiumSubscription(userId, productId, purchase);
-        
-        return {
-          success: true,
-          productId: purchase.productId,
-          transactionId: purchase.transactionId,
-          purchaseTime: purchase.purchaseTime
-        };
-      } else {
-        throw new Error('Receipt verification failed');
-      }
-      
-    } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+      // Was previously silently granting free premium here. A real
+      // purchase cannot be made without the native in-app-purchases
+      // module, which Expo Go does not include -- report that honestly
+      // instead of pretending a purchase happened.
       return {
         success: false,
-        cancelled: true,
-        message: 'Purchase cancelled by user'
+        error: 'In-app purchases require a development or production build. They are not available in Expo Go.',
       };
+    }
+
+    const { responseCode, results } = await InAppPurchases.purchaseItemAsync(productId);
+
+    if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+      const purchase = results[0];
+      const result = await verifyPurchaseReceipt(purchase);
+      if (!result.success) throw new Error(result.error || 'Receipt verification failed');
+
+      // Clear trial bookkeeping now that a real, server-verified paid
+      // subscription exists. Premium status itself is read fresh from
+      // getActiveSubscription()/hasPremiumAccess(), not set here.
+      await AsyncStorage.removeItem(STORAGE_KEYS.TRIAL_ACTIVATED);
+      await AsyncStorage.removeItem(STORAGE_KEYS.TRIAL_START_DATE);
+
+      return { success: true, productId: purchase.productId, transactionId: purchase.transactionId };
+    } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+      return { success: false, cancelled: true, message: 'Purchase cancelled by user' };
     } else {
       throw new Error(`Purchase failed with code: ${responseCode}`);
     }
-    
   } catch (error) {
-    // Error purchasing subscription
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-};
-
-// Verify purchase receipt (server-side verification recommended)
-const verifyPurchaseReceipt = async (userId, purchase) => {
-  try {
-    // For production, implement server-side receipt verification
-    // This is a simplified version - in production, send receipt to your server
-    
-    // Verifying purchase receipt
-    
-    // You can implement server-side verification here
-    // For now, we'll do basic client-side validation
-    
-    if (purchase.transactionId && purchase.productId) {
-      // Log purchase in database for audit
-      await supabase
-        .from('purchase_transactions')
-        .insert({
-          user_id: userId,
-          product_id: purchase.productId,
-          transaction_id: purchase.transactionId,
-          platform: Platform.OS,
-          purchase_time: purchase.purchaseTime,
-          verified: true,
-          created_at: new Date().toISOString()
-        });
-      
-      return { success: true };
-    }
-    
-    return { success: false, error: 'Invalid purchase data' };
-    
-  } catch (error) {
-    // Error verifying receipt
     return { success: false, error: error.message };
   }
 };
 
-// Activate premium subscription after successful purchase
-const activatePremiumSubscription = async (userId, productId, purchase) => {
+// Actually verifies the purchase server-side via the verify-receipt Edge
+// Function -- see the Phase 1.5 note above for what this replaced.
+const verifyPurchaseReceipt = async (purchase) => {
   try {
-    // Activating premium subscription
-    
-    const now = new Date();
-    let subscriptionEndDate;
-    let subscriptionType;
-    
-    // Calculate subscription end date based on product type
-    if (productId.includes('yearly')) {
-      subscriptionEndDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000)); // 1 year
-      subscriptionType = 'yearly';
-    } else {
-      subscriptionEndDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)); // 1 month
-      subscriptionType = 'monthly';
-    }
-    
-    // Update user subscription in Supabase
-    const { error } = await supabase
-      .from('users')
-      .update({
-        premium_access: true,
-        subscription_status: 'active',
-        subscription_type: subscriptionType,
-        subscription_start_date: now.toISOString(),
-        subscription_end_date: subscriptionEndDate.toISOString(),
-        product_id: productId,
-        transaction_id: purchase.transactionId
-      })
-      .eq('id', userId);
+    const plan = planFromProductId(purchase.productId);
+    const receipt =
+      Platform.OS === 'ios'
+        ? purchase.transactionReceipt // base64 App Store receipt
+        : { productId: purchase.productId, purchaseToken: purchase.purchaseToken };
 
-    if (error) {
-      // Error activating subscription
-      throw error;
+    if (Platform.OS === 'ios' && !receipt) {
+      return { success: false, error: 'No receipt data returned by the store.' };
     }
-    
-    // Clear trial data since user now has paid subscription
-    await AsyncStorage.removeItem(STORAGE_KEYS.TRIAL_ACTIVATED);
-    await AsyncStorage.removeItem(STORAGE_KEYS.TRIAL_START_DATE);
-    
-    // Premium subscription activated successfully
-    return { success: true, endDate: subscriptionEndDate.toISOString() };
-    
+    if (Platform.OS !== 'ios' && !receipt.purchaseToken) {
+      return { success: false, error: 'No purchase token returned by the store.' };
+    }
+
+    const result = await verifyPurchaseWithServer({ receipt, platform: Platform.OS, plan });
+    return { success: true, subscriptionEnd: result.subscriptionEnd };
   } catch (error) {
-    // Error activating premium subscription
-    throw error;
+    return { success: false, error: error.message };
   }
 };
 
 // Restore previous purchases
 export const restorePurchases = async (userId) => {
   try {
-    // Restoring purchases
-    
-    // Check if in-app purchases are available
     if (!InAppPurchases) {
-      // In-app purchases not available - checking database for previous purchases
-      
-      // Check database for previous purchases
-      const { data: purchases, error } = await supabase
-        .from('purchase_transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('verified', true)
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (purchases && purchases.length > 0) {
-        const latestPurchase = purchases[0];
-        
-        // Restore subscription based on database record
-        await activatePremiumSubscription(userId, latestPurchase.product_id, {
-          productId: latestPurchase.product_id,
-          transactionId: latestPurchase.transaction_id,
-          purchaseTime: latestPurchase.purchase_time
-        });
-        
-        return {
-          success: true,
-          restored: true,
-          productId: latestPurchase.product_id,
-          mockMode: true
-        };
-      }
-      
+      // PHASE 1.5 FIX: this used to read `purchase_transactions` rows that
+      // verifyPurchaseReceipt() itself had written with a self-reported
+      // `verified: true` (never actually checked by anyone) and grant
+      // premium from them, labeling the result "mockMode: true" -- i.e. it
+      // knowingly faked a restore. There is nothing legitimate to restore
+      // without the real store APIs, so say so plainly instead.
       return {
-        success: true,
-        restored: false,
-        message: 'No previous purchases found',
-        mockMode: true
+        success: false,
+        error: 'Restoring purchases requires a development or production build. Not available in Expo Go.',
       };
     }
-    
+
     const { responseCode, results } = await InAppPurchases.getPurchaseHistoryAsync();
-    
+
     if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-      const subscriptionPurchases = results.filter(purchase => 
-        getProductIds().includes(purchase.productId)
-      );
-      
+      const subscriptionPurchases = results.filter((purchase) => getProductIds().includes(purchase.productId));
+
       if (subscriptionPurchases.length > 0) {
-        // Find the most recent subscription
-        const latestPurchase = subscriptionPurchases.sort((a, b) => 
-          new Date(b.purchaseTime) - new Date(a.purchaseTime)
+        const latestPurchase = subscriptionPurchases.sort(
+          (a, b) => new Date(b.purchaseTime) - new Date(a.purchaseTime)
         )[0];
-        
-        // Verify and restore the subscription
-        const verificationResult = await verifyPurchaseReceipt(userId, latestPurchase);
-        
+
+        const verificationResult = await verifyPurchaseReceipt(latestPurchase);
         if (verificationResult.success) {
-          await activatePremiumSubscription(userId, latestPurchase.productId, latestPurchase);
-          
-          return {
-            success: true,
-            restored: true,
-            productId: latestPurchase.productId
-          };
+          return { success: true, restored: true, productId: latestPurchase.productId };
         }
+        return { success: false, error: verificationResult.error };
       }
-      
-      return {
-        success: true,
-        restored: false,
-        message: 'No previous purchases found'
-      };
+
+      return { success: true, restored: false, message: 'No previous purchases found' };
     }
-    
+
     throw new Error(`Restore failed with code: ${responseCode}`);
-    
   } catch (error) {
-    // Error restoring purchases
-    return {
-      success: false,
-      error: error.message
-    };
+    return { success: false, error: error.message };
   }
 };
 
@@ -583,65 +475,34 @@ export const hasPremiumAccess = async (userId) => {
       };
     }
     
-    // Check paid subscription status
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('premium_access, subscription_status, subscription_end_date, subscription_type')
-      .eq('id', userId);
-
-    if (error) {
-      // Error checking premium access
-      return { hasAccess: false, error: error.message };
+    // PHASE 1.5 FIX: this used to read `users.premium_access`, a column a
+    // client could set on itself (see the purchaseSubscription/
+    // verifyPurchaseReceipt/activatePremiumSubscription fix notes above).
+    // `subscriptions` is server-write-only (Edge Functions via
+    // service_role) -- see supabase/migrations/003_authorization_and_schema_fixes.sql.
+    const subscription = await getActiveSubscription(userId);
+    if (subscription) {
+      return {
+        hasAccess: true,
+        source: 'subscription',
+        subscriptionType: subscription.plan,
+        endDate: subscription.expires_at,
+      };
     }
 
-    if (!users || users.length === 0) {
-      return { hasAccess: false };
-    }
-
-    const user = users[0];
-
-    if (user.premium_access && user.subscription_status === 'active') {
-      const now = new Date();
-      const endDate = new Date(user.subscription_end_date);
-      
-      if (endDate > now) {
-        return {
-          hasAccess: true,
-          source: 'subscription',
-          subscriptionType: user.subscription_type,
-          endDate: user.subscription_end_date
-        };
-      } else {
-        // Subscription expired, revoke access
-        await expireSubscription(userId);
-        return { hasAccess: false, expired: true };
-      }
-    }
-    
     return { hasAccess: false };
-    
   } catch (error) {
     // Error checking premium access
     return { hasAccess: false, error: error.message };
   }
 };
 
-// Expire subscription and revoke premium access
-const expireSubscription = async (userId) => {
-  try {
-    await supabase
-      .from('users')
-      .update({
-        premium_access: false,
-        subscription_status: 'expired'
-      })
-      .eq('id', userId);
-      
-    // Subscription expired for user
-  } catch (error) {
-    // Error expiring subscription
-  }
-};
+// PHASE 1.5: expireSubscription() was deleted here -- it wrote directly to
+// `users.premium_access`/`subscription_status` (the same client-write
+// vulnerability fixed elsewhere in this file) and is no longer needed:
+// getActiveSubscription()'s `expires_at > now()` filter means an expired
+// row in `subscriptions` simply stops being returned, with nothing to
+// actively "expire" from the client.
 
 // Get subscription plans for UI display
 export const getSubscriptionPlans = () => {

@@ -6,6 +6,13 @@ node_modules/
 dist/
 web-build/
 
+# This project uses the Expo managed workflow (`expo prebuild` generates
+# these on demand for a native build/EAS build; they are not hand-edited
+# and should not be committed -- see the Phase 1.5 report for the native
+# build verification that used them).
+/android/
+/ios/
+
 # Native
 *.orig.*
 *.jks

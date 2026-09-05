@@ -70,11 +70,24 @@ export const AudioPlayerProvider = ({ children }) => {
     [user, currentBook, playbackRate]
   );
 
-  // Debounced wrapper used by frequent callers (seek, rate change); the
-  // interval-driven poll below uses the throttled inline check instead so
-  // we get one guaranteed write per PROGRESS_WRITE_INTERVAL_MS even during
-  // continuous playback, not just on the trailing edge of activity.
-  const debouncedPersist = useRef(debounce((pos, dur) => persistProgress(pos, dur), 2000)).current;
+  // PHASE 1.5 BUG FOUND & FIXED: `useRef(debounce((pos, dur) =>
+  // persistProgress(pos, dur), 2000))` looked stable, but the arrow
+  // function inside it closes over the `persistProgress` binding from
+  // whichever render created the ref's initial value (the very first one,
+  // since useRef ignores its argument on later renders) -- and that first
+  // render's `persistProgress` closes over `user = null, currentBook =
+  // null` (nothing is loaded yet on mount). Every debounced call
+  // afterwards silently hit `if (!user || !currentBook || !dur) return;`
+  // and no-opped, forever -- seeking never actually persisted progress.
+  // Routing through a ref that's kept in sync with the latest
+  // `persistProgress` fixes it: the debounce timer itself stays stable
+  // (still created once), but always calls through to current state.
+  const persistProgressRef = useRef(persistProgress);
+  useEffect(() => {
+    persistProgressRef.current = persistProgress;
+  }, [persistProgress]);
+
+  const debouncedPersist = useRef(debounce((pos, dur) => persistProgressRef.current(pos, dur), 2000)).current;
 
   const clearPoll = () => {
     if (pollRef.current) {
@@ -99,10 +112,17 @@ export const AudioPlayerProvider = ({ children }) => {
       const now = Date.now();
       if (status.isPlaying && now - lastPersistedAtRef.current >= PROGRESS_WRITE_INTERVAL_MS) {
         lastPersistedAtRef.current = now;
-        persistProgress(pos, dur);
+        // Same stale-closure fix as debouncedPersist above: this interval
+        // is created once per loadBook() call and keeps running for the
+        // whole listening session, so it must read persistProgress via the
+        // ref (which always points at the latest playbackRate/user/book)
+        // rather than the value closed over when the interval was created
+        // -- otherwise a mid-session speed change would keep writing the
+        // playback_rate that was active when playback started.
+        persistProgressRef.current(pos, dur);
       }
     }, 1000);
-  }, [persistProgress]);
+  }, []);
 
   // Flush progress immediately when the app is backgrounded/killed, rather
   // than relying on the 15s interval (which pauses along with JS timers
