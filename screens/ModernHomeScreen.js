@@ -18,14 +18,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { getBooks, getContinueReadingBooks, getContinueListeningBooks, getFavorites } from '../services/supabase';
 import { sanitizeBookArray, sanitizeNestedBookRecord, sanitizeBookRecord } from '../utils/bookSanitizer';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
+import { SectionHeader, HorizontalBookList } from '../components/ui';
 
 const { width } = Dimensions.get('window');
-const BOOK_CARD_WIDTH = 120;
 const AUDIOBOOK_CARD_WIDTH = 140;
 
 const ModernHomeScreen = ({ navigation }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [topReads, setTopReads] = useState([]);
   const [topAudiobooks, setTopAudiobooks] = useState([]);
@@ -116,45 +116,15 @@ const ModernHomeScreen = ({ navigation }) => {
     return user.user_metadata?.name || user.email?.split('@')[0] || 'Reader';
   };
 
-  const isAdmin = () => {
-    if (!user) return false;
-    // Check if user is admin - you can customize this logic
-    // Option 1: Check user metadata
-    if (user.user_metadata?.role === 'admin') return true;
-    // Option 2: Check email domain or specific emails
-    if (user.email === 'admin@yourdomain.com') return true;
-    // Option 3: Check if email contains 'admin'
-    if (user.email?.includes('admin')) return true;
-    return false;
-  };
-
-
-  const renderTopReadCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.topReadCard}
-      onPress={() => navigation.navigate('BookDetail', { book: sanitizeBookRecord(item) })}
-      activeOpacity={0.8}
-    >
-      <LinearGradient
-        colors={GRADIENTS.HERO}
-        style={styles.topReadGradient}
-      >
-        <Image
-          source={{ uri: item.cover_url }}
-          style={styles.topReadCover}
-          resizeMode="cover"
-        />
-        <View style={styles.topReadInfo}>
-          <Text style={styles.topReadTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text style={styles.topReadAuthor} numberOfLines={1}>
-            {item.author}
-          </Text>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
+  // PHASE 2 fix (#24 real data, #30 duplicate cleanup): this used to be a
+  // local, insecure guess -- `user.email?.includes('admin')` would match
+  // any email containing that substring (e.g. "badminton@x.com"), and
+  // `user.email === 'admin@yourdomain.com'` checked a placeholder domain
+  // that was never real. AuthContext.js has provided a real, backend-
+  // verified `isAdmin` (derived from `profiles.role` via the RLS-checked
+  // query added in migration 003) since Phase 0 -- this screen was simply
+  // never updated to use it. Now destructured from useAuth() above
+  // instead of a local function.
 
   const renderAudiobookCard = ({ item }) => (
     <TouchableOpacity
@@ -317,16 +287,17 @@ const ModernHomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </LinearGradient>
 
-        {/* Categories Section */}
+        {/* Categories Section. PHASE 2: the sectionHeader/sectionTitle/
+            seeAllText row was hand-copied identically 5 times in this
+            file -- now the shared SectionHeader component. */}
         {categories.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>📚 {t('home.browseCategories')}</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Explore')}>
-                <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
-              </TouchableOpacity>
-            </View>
-            
+            <SectionHeader
+              title={`📚 ${t('home.browseCategories')}`}
+              actionLabel={t('home.seeAll')}
+              onActionPress={() => navigation.navigate('Explore')}
+            />
+
             <FlatList
               data={categories}
               renderItem={renderCategoryCard}
@@ -341,13 +312,12 @@ const ModernHomeScreen = ({ navigation }) => {
         {/* Continue Reading Section */}
         {user && continueReading.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>📖 {t('home.continueReading')}</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Library')}>
-                <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
-              </TouchableOpacity>
-            </View>
-            
+            <SectionHeader
+              title={`📖 ${t('home.continueReading')}`}
+              actionLabel={t('home.seeAll')}
+              onActionPress={() => navigation.navigate('Library')}
+            />
+
             <FlatList
               data={continueReading}
               renderItem={renderContinueReadingCard}
@@ -362,12 +332,11 @@ const ModernHomeScreen = ({ navigation }) => {
         {/* Continue Listening Section */}
         {user && continueListening.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>🎧 Continue Listening</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Library')}>
-                <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
-              </TouchableOpacity>
-            </View>
+            <SectionHeader
+              title="🎧 Continue Listening"
+              actionLabel={t('home.seeAll')}
+              onActionPress={() => navigation.navigate('Library')}
+            />
 
             <FlatList
               data={continueListening}
@@ -380,34 +349,31 @@ const ModernHomeScreen = ({ navigation }) => {
           </View>
         )}
 
-        {/* Top Reads Section */}
+        {/* Top Reads Section. PHASE 2: swapped onto the shared
+            HorizontalBookList/CompactBookCard (virtualized FlatList,
+            Phase 2 #23) instead of a bespoke renderItem + LinearGradient
+            wrapper -- Top Reads has no behavior beyond "open BookDetail",
+            which HorizontalBookList already does. */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🔥 {t('home.topReads')}</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('TopReads')}>
-              <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <FlatList
+          <SectionHeader
+            title={`🔥 ${t('home.topReads')}`}
+            actionLabel={t('home.seeAll')}
+            onActionPress={() => navigation.navigate('TopReads')}
+          />
+          <HorizontalBookList
             data={topReads}
-            renderItem={renderTopReadCard}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
+            onBookPress={(book) => navigation.navigate('BookDetail', { book: sanitizeBookRecord(book) })}
           />
         </View>
 
         {/* Top Audiobooks Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🎧 {t('home.topAudiobooks')}</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('TopAudiobooks')}>
-              <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
-            </TouchableOpacity>
-          </View>
-          
+          <SectionHeader
+            title={`🎧 ${t('home.topAudiobooks')}`}
+            actionLabel={t('home.seeAll')}
+            onActionPress={() => navigation.navigate('TopAudiobooks')}
+          />
+
           <FlatList
             data={topAudiobooks}
             renderItem={renderAudiobookCard}
@@ -454,7 +420,7 @@ const ModernHomeScreen = ({ navigation }) => {
         </View>
 
         {/* Admin Actions (only for admin users) */}
-        {user && isAdmin() && (
+        {user && isAdmin && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🔧 Admin Actions</Text>
             
@@ -552,61 +518,15 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: SPACING.XL,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.LG,
-    marginBottom: SPACING.MD,
-  },
   sectionTitle: {
     fontSize: FONTS.SIZES.XLARGE,
     fontWeight: 'bold',
     color: COLORS.TEXT,
-  },
-  seeAllText: {
-    fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.BUTTON,
-    fontWeight: '600',
+    paddingHorizontal: SPACING.LG,
+    marginBottom: SPACING.MD,
   },
   horizontalList: {
     paddingHorizontal: SPACING.LG,
-  },
-  topReadCard: {
-    width: BOOK_CARD_WIDTH,
-    marginRight: SPACING.MD,
-    borderRadius: BORDER_RADIUS.LG,
-    overflow: 'hidden',
-    elevation: 4,
-    shadowColor: COLORS.BUTTON,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  topReadGradient: {
-    flex: 1,
-    padding: SPACING.SM,
-  },
-  topReadCover: {
-    width: '100%',
-    height: 140,
-    borderRadius: BORDER_RADIUS.SM,
-    marginBottom: SPACING.SM,
-  },
-  topReadInfo: {
-    flex: 1,
-  },
-  topReadTitle: {
-    fontSize: FONTS.SIZES.SMALL,
-    fontWeight: 'bold',
-    color: COLORS.TEXT,
-    marginBottom: SPACING.XS,
-    lineHeight: 16,
-  },
-  topReadAuthor: {
-    fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
-    opacity: 0.7,
   },
   audiobookCard: {
     width: AUDIOBOOK_CARD_WIDTH,
@@ -649,7 +569,7 @@ const styles = StyleSheet.create({
   },
   continueCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     padding: SPACING.MD,
     marginRight: SPACING.MD,
