@@ -13,7 +13,8 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { LoadingState } from '../components/ui';
 
 const { width } = Dimensions.get('window');
@@ -31,6 +32,8 @@ const ReadingStatsScreen = ({ navigation }) => {
     achievements: []
   });
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   // PHASE 1.8 FIX: `reading_sessions` rows have `created_at` (a full
   // timestamp) and `session_duration` (seconds) -- see
@@ -77,11 +80,11 @@ const ReadingStatsScreen = ({ navigation }) => {
   const calculateAchievements = (booksRead, hoursRead, sessions) => {
     const achievements = [];
     
-    if (booksRead >= 1) achievements.push({ name: 'First Book', icon: 'book', color: COLORS.SUCCESS });
-    if (booksRead >= 5) achievements.push({ name: 'Bookworm', icon: 'book-multiple', color: COLORS.BUTTON });
-    if (booksRead >= 10) achievements.push({ name: 'Book Lover', icon: 'heart', color: COLORS.ERROR });
-    if (hoursRead >= 10) achievements.push({ name: 'Dedicated Reader', icon: 'clock', color: COLORS.INFO });
-    if (hoursRead >= 50) achievements.push({ name: 'Reading Master', icon: 'trophy', color: COLORS.BUTTON });
+    if (booksRead >= 1) achievements.push({ name: 'First Book', icon: 'book', color: colors.SUCCESS });
+    if (booksRead >= 5) achievements.push({ name: 'Bookworm', icon: 'book-multiple', color: colors.BUTTON });
+    if (booksRead >= 10) achievements.push({ name: 'Book Lover', icon: 'heart', color: colors.ERROR });
+    if (hoursRead >= 10) achievements.push({ name: 'Dedicated Reader', icon: 'clock', color: colors.INFO });
+    if (hoursRead >= 50) achievements.push({ name: 'Reading Master', icon: 'trophy', color: colors.BUTTON });
     
     // Check for reading streak (PHASE 1.8 FIX: `created_at`, not `date`)
     const recentDays = sessions?.filter(session => {
@@ -90,7 +93,7 @@ const ReadingStatsScreen = ({ navigation }) => {
       return daysDiff <= 7;
     }).length || 0;
     
-    if (recentDays >= 3) achievements.push({ name: 'Consistent Reader', icon: 'fire', color: COLORS.WARNING });
+    if (recentDays >= 3) achievements.push({ name: 'Consistent Reader', icon: 'fire', color: colors.WARNING });
     
     return achievements;
   };
@@ -202,9 +205,9 @@ const ReadingStatsScreen = ({ navigation }) => {
 
 
   const chartConfig = {
-    backgroundColor: COLORS.SURFACE,
-    backgroundGradientFrom: COLORS.SURFACE,
-    backgroundGradientTo: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
+    backgroundGradientFrom: colors.SURFACE,
+    backgroundGradientTo: colors.SURFACE,
     decimalPlaces: 0,
     color: (opacity = 1) => `rgba(250, 181, 0, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -214,7 +217,7 @@ const ReadingStatsScreen = ({ navigation }) => {
     propsForDots: {
       r: "4",
       strokeWidth: "2",
-      stroke: COLORS.BUTTON
+      stroke: colors.BUTTON
     }
   };
 
@@ -237,7 +240,7 @@ const ReadingStatsScreen = ({ navigation }) => {
           <View style={styles.statsGrid}>
             <Card containerStyle={styles.statCard}>
               <View style={styles.statContent}>
-                <MaterialCommunityIcons name="book-multiple" size={32} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="book-multiple" size={32} color={colors.BUTTON} />
                 <Text style={styles.statNumber}>{stats.booksRead}</Text>
                 <Text style={styles.statLabel}>Books Read</Text>
               </View>
@@ -245,7 +248,7 @@ const ReadingStatsScreen = ({ navigation }) => {
 
             <Card containerStyle={styles.statCard}>
               <View style={styles.statContent}>
-                <MaterialCommunityIcons name="clock" size={32} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="clock" size={32} color={colors.BUTTON} />
                 <Text style={styles.statNumber}>{stats.hoursRead}h</Text>
                 <Text style={styles.statLabel}>Hours Read</Text>
               </View>
@@ -253,7 +256,7 @@ const ReadingStatsScreen = ({ navigation }) => {
 
             <Card containerStyle={styles.statCard}>
               <View style={styles.statContent}>
-                <MaterialCommunityIcons name="file-document" size={32} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="file-document" size={32} color={colors.BUTTON} />
                 <Text style={styles.statNumber}>{stats.pagesRead}</Text>
                 <Text style={styles.statLabel}>Pages Read</Text>
               </View>
@@ -261,7 +264,7 @@ const ReadingStatsScreen = ({ navigation }) => {
 
             <Card containerStyle={styles.statCard}>
               <View style={styles.statContent}>
-                <MaterialCommunityIcons name="heart" size={32} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="heart" size={32} color={colors.BUTTON} />
                 <Text style={styles.statNumber}>{stats.favoriteCategory}</Text>
                 <Text style={styles.statLabel}>Favorite Genre</Text>
               </View>
@@ -279,8 +282,8 @@ const ReadingStatsScreen = ({ navigation }) => {
                 size={120}
                 width={8}
                 fill={Math.min((stats.booksRead / 10) * 100, 100)}
-                tintColor={COLORS.BUTTON}
-                backgroundColor={COLORS.PROGRESS_BACKGROUND}
+                tintColor={colors.BUTTON}
+                backgroundColor={colors.PROGRESS_BACKGROUND}
                 rotation={0}
               >
                 {() => (
@@ -366,7 +369,7 @@ const ReadingStatsScreen = ({ navigation }) => {
             {stats.achievements.length === 0 && (
               <Card containerStyle={styles.noAchievementsCard}>
                 <View style={styles.noAchievementsContent}>
-                  <MaterialCommunityIcons name="trophy-outline" size={32} color={COLORS.TEXT} />
+                  <MaterialCommunityIcons name="trophy-outline" size={32} color={colors.TEXT} />
                   <Text style={styles.noAchievementsText}>
                     Start reading to unlock achievements!
                   </Text>
@@ -382,7 +385,7 @@ const ReadingStatsScreen = ({ navigation }) => {
           
           <Card containerStyle={styles.insightCard}>
             <View style={styles.insightContent}>
-              <MaterialCommunityIcons name="lightbulb" size={24} color={COLORS.BUTTON} />
+              <MaterialCommunityIcons name="lightbulb" size={24} color={colors.BUTTON} />
               <Text style={styles.insightText}>
                 {stats.hoursRead > 0 
                   ? `You've spent ${stats.hoursRead} hours reading! That's equivalent to ${Math.round(stats.hoursRead / 24)} full days of reading.`
@@ -394,7 +397,7 @@ const ReadingStatsScreen = ({ navigation }) => {
 
           <Card containerStyle={styles.insightCard}>
             <View style={styles.insightContent}>
-              <MaterialCommunityIcons name="chart-line" size={24} color={COLORS.BUTTON} />
+              <MaterialCommunityIcons name="chart-line" size={24} color={colors.BUTTON} />
               <Text style={styles.insightText}>
                 {stats.booksRead > 0
                   ? `Your favorite genre is ${stats.favoriteCategory}. Try exploring new genres to broaden your reading experience!`
@@ -409,13 +412,14 @@ const ReadingStatsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: COMMON_STYLES.container,
+const createStyles = (colors) => StyleSheet.create({
+  container: { ...COMMON_STYLES.container, backgroundColor: colors.BACKGROUND },
   scrollView: {
     flex: 1,
   },
   loadingText: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.LARGE,
   },
   section: {
@@ -424,7 +428,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONTS.SIZES.XLARGE,
     fontWeight: 'bold',
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     marginHorizontal: SPACING.LG,
     marginBottom: SPACING.MD,
     marginTop: SPACING.MD,
@@ -436,12 +440,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.LG,
   },
   statCard: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     width: '48%',
     marginBottom: SPACING.MD,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   statContent: {
     alignItems: 'center',
@@ -449,6 +453,7 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.XXLARGE,
     fontWeight: 'bold',
     marginTop: SPACING.SM,
@@ -456,16 +461,17 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.SMALL,
     opacity: 0.8,
     textAlign: 'center',
   },
   progressCard: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     marginHorizontal: SPACING.LG,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   circularProgressContainer: {
     flexDirection: 'row',
@@ -477,11 +483,13 @@ const styles = StyleSheet.create({
   },
   circularProgressNumber: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.TITLE,
     fontWeight: 'bold',
   },
   circularProgressLabel: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.SMALL,
     opacity: 0.8,
   },
@@ -491,21 +499,23 @@ const styles = StyleSheet.create({
   },
   progressTitle: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.LARGE,
     fontWeight: '600',
     marginBottom: SPACING.XS,
   },
   progressSubtitle: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     opacity: 0.8,
   },
   chartCard: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     marginHorizontal: SPACING.LG,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     padding: SPACING.SM,
   },
   chart: {
@@ -513,6 +523,7 @@ const styles = StyleSheet.create({
   },
   chartLabel: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.SMALL,
     textAlign: 'center',
     marginTop: SPACING.SM,
@@ -525,12 +536,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.LG,
   },
   achievementCard: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: BORDER_RADIUS.MD,
     width: '48%',
     marginBottom: SPACING.SM,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   achievementContent: {
     flexDirection: 'row',
@@ -539,16 +550,17 @@ const styles = StyleSheet.create({
   },
   achievementName: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.SMALL,
     marginLeft: SPACING.XS,
     flex: 1,
   },
   noAchievementsCard: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     width: '100%',
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   noAchievementsContent: {
     alignItems: 'center',
@@ -556,18 +568,19 @@ const styles = StyleSheet.create({
   },
   noAchievementsText: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     textAlign: 'center',
     marginTop: SPACING.SM,
     opacity: 0.8,
   },
   insightCard: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     marginHorizontal: SPACING.LG,
     marginBottom: SPACING.MD,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   insightContent: {
     flexDirection: 'row',
@@ -576,6 +589,7 @@ const styles = StyleSheet.create({
   },
   insightText: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     flex: 1,
     marginLeft: SPACING.SM,

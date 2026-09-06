@@ -22,7 +22,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
 import { uploadFile, getPublicUrl, createBook } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const BOOK_CATEGORIES = [
   'Fiction', 'Non-Fiction', 'Science', 'History', 'Biography',
@@ -57,6 +58,8 @@ const AdminUploadScreen = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   // Input handlers
   const handleInputChange = (field, value) => {
@@ -291,7 +294,7 @@ const AdminUploadScreen = () => {
           <Card style={styles.progressCard}>
             <Card.Content>
               <Text style={styles.progressText}>{uploadStatus}</Text>
-              <ProgressBar progress={uploadProgress / 100} color={COLORS.primary} style={styles.progressBar} />
+              <ProgressBar progress={uploadProgress / 100} color={colors.primary} style={styles.progressBar} />
               <Text style={styles.progressPercent}>{uploadProgress}%</Text>
             </Card.Content>
           </Card>
@@ -315,11 +318,11 @@ const AdminUploadScreen = () => {
               left={<TextInput.Icon icon="format-title" />}
               theme={{
                 colors: {
-                  text: COLORS.TEXT,
-                  placeholder: COLORS.TEXT_SECONDARY,
-                  primary: COLORS.BUTTON,
-                  outline: COLORS.BORDER,
-                  background: COLORS.SURFACE,
+                  text: colors.TEXT,
+                  placeholder: colors.TEXT_SECONDARY,
+                  primary: colors.BUTTON,
+                  outline: colors.BORDER,
+                  background: colors.SURFACE,
                 }
               }}
             />
@@ -334,11 +337,11 @@ const AdminUploadScreen = () => {
               left={<TextInput.Icon icon="account-edit" />}
               theme={{
                 colors: {
-                  text: COLORS.TEXT,
-                  placeholder: COLORS.TEXT_SECONDARY,
-                  primary: COLORS.BUTTON,
-                  outline: COLORS.BORDER,
-                  background: COLORS.SURFACE,
+                  text: colors.TEXT,
+                  placeholder: colors.TEXT_SECONDARY,
+                  primary: colors.BUTTON,
+                  outline: colors.BORDER,
+                  background: colors.SURFACE,
                 }
               }}
             />
@@ -355,11 +358,11 @@ const AdminUploadScreen = () => {
               left={<TextInput.Icon icon="text" />}
               theme={{
                 colors: {
-                  text: COLORS.TEXT,
-                  placeholder: COLORS.TEXT_SECONDARY,
-                  primary: COLORS.BUTTON,
-                  outline: COLORS.BORDER,
-                  background: COLORS.SURFACE,
+                  text: colors.TEXT,
+                  placeholder: colors.TEXT_SECONDARY,
+                  primary: colors.BUTTON,
+                  outline: colors.BORDER,
+                  background: colors.SURFACE,
                 }
               }}
             />
@@ -483,11 +486,11 @@ const AdminUploadScreen = () => {
               left={<TextInput.Icon icon="barcode" />}
               theme={{
                 colors: {
-                  text: COLORS.TEXT,
-                  placeholder: COLORS.TEXT_SECONDARY,
-                  primary: COLORS.BUTTON,
-                  outline: COLORS.BORDER,
-                  background: COLORS.SURFACE,
+                  text: colors.TEXT,
+                  placeholder: colors.TEXT_SECONDARY,
+                  primary: colors.BUTTON,
+                  outline: colors.BORDER,
+                  background: colors.SURFACE,
                 }
               }}
             />
@@ -504,11 +507,11 @@ const AdminUploadScreen = () => {
                 left={<TextInput.Icon icon="calendar" />}
                 theme={{
                   colors: {
-                    text: COLORS.TEXT,
-                    placeholder: COLORS.TEXT_SECONDARY,
-                    primary: COLORS.BUTTON,
-                    outline: COLORS.BORDER,
-                    background: COLORS.SURFACE,
+                    text: colors.TEXT,
+                    placeholder: colors.TEXT_SECONDARY,
+                    primary: colors.BUTTON,
+                    outline: colors.BORDER,
+                    background: colors.SURFACE,
                   }
                 }}
               />
@@ -524,11 +527,11 @@ const AdminUploadScreen = () => {
                 left={<TextInput.Icon icon="file-document" />}
                 theme={{
                   colors: {
-                    text: COLORS.TEXT,
-                    placeholder: COLORS.TEXT_SECONDARY,
-                    primary: COLORS.BUTTON,
-                    outline: COLORS.BORDER,
-                    background: COLORS.SURFACE,
+                    text: colors.TEXT,
+                    placeholder: colors.TEXT_SECONDARY,
+                    primary: colors.BUTTON,
+                    outline: colors.BORDER,
+                    background: colors.SURFACE,
                   }
                 }}
               />
@@ -640,10 +643,10 @@ const AdminUploadScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue #021945
+    backgroundColor: colors.BACKGROUND, // Dark blue #021945
   },
   scrollView: {
     flex: 1,
@@ -659,59 +662,59 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FONTS.SIZES.HEADER,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontWeight: 'bold',
     marginBottom: SPACING.XS,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     textAlign: 'center',
   },
   progressCard: {
     marginBottom: SPACING.MD,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     borderRadius: BORDER_RADIUS.MD,
     padding: SPACING.MD,
   },
   progressText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     textAlign: 'center',
     marginBottom: SPACING.SM,
   },
   progressBar: {
     marginBottom: SPACING.XS,
-    backgroundColor: COLORS.PROGRESS_BACKGROUND,
+    backgroundColor: colors.PROGRESS_BACKGROUND,
   },
   progressPercent: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     textAlign: 'center',
   },
   card: {
     marginBottom: SPACING.MD,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     borderRadius: BORDER_RADIUS.MD,
     padding: SPACING.MD,
   },
   cardTitle: {
     fontSize: FONTS.SIZES.LARGE,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontWeight: '600',
     marginBottom: SPACING.SM,
   },
   cardIcon: {
-    backgroundColor: COLORS.BUTTON, // Yellow
+    backgroundColor: colors.BUTTON, // Yellow
   },
   input: {
     marginBottom: SPACING.SM,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
   },
   rowInputs: {
     flexDirection: 'row',
@@ -731,17 +734,17 @@ const styles = StyleSheet.create({
   },
   fileLabel: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontWeight: '600',
   },
   requiredChip: {
-    backgroundColor: COLORS.ERROR,
+    backgroundColor: colors.ERROR,
   },
   optionalChip: {
-    backgroundColor: COLORS.TEXT_SECONDARY,
+    backgroundColor: colors.TEXT_SECONDARY,
   },
   chipText: {
-    color: COLORS.BACKGROUND, // Dark blue text on colored chips
+    color: colors.BACKGROUND, // Dark blue text on colored chips
     fontSize: 10,
     fontWeight: '600',
   },
@@ -749,20 +752,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     padding: SPACING.SM,
     borderRadius: BORDER_RADIUS.SM,
     borderWidth: 1,
-    borderColor: COLORS.BUTTON, // Yellow border
+    borderColor: colors.BUTTON, // Yellow border
   },
   fileName: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     flex: 1,
   },
   fileButton: {
     marginTop: SPACING.XS,
-    backgroundColor: COLORS.BUTTON, // Yellow button
+    backgroundColor: colors.BUTTON, // Yellow button
   },
   categoriesContainer: {
     flexDirection: 'row',
@@ -772,33 +775,33 @@ const styles = StyleSheet.create({
   },
   categoryHint: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     fontStyle: 'italic',
   },
   categoryChip: {
     marginRight: SPACING.XS,
     marginBottom: SPACING.XS,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   selectedCategoryChip: {
-    backgroundColor: COLORS.BUTTON, // Yellow when selected
+    backgroundColor: colors.BUTTON, // Yellow when selected
   },
   categoryChipText: {
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontSize: 12,
   },
   selectedCategoryChipText: {
-    color: COLORS.BUTTON_TEXT, // Dark blue text on yellow
+    color: colors.BUTTON_TEXT, // Dark blue text on yellow
     fontWeight: '600',
   },
   settingsContainer: {
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     borderRadius: BORDER_RADIUS.SM,
     padding: SPACING.SM,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   switchContainer: {
     flexDirection: 'row',
@@ -812,13 +815,13 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontWeight: '600',
     marginBottom: 2,
   },
   switchDescription: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     lineHeight: 16,
   },
   buttonContainer: {
@@ -826,11 +829,11 @@ const styles = StyleSheet.create({
     gap: SPACING.SM,
   },
   uploadButton: {
-    backgroundColor: COLORS.BUTTON, // Yellow
+    backgroundColor: colors.BUTTON, // Yellow
     borderRadius: BORDER_RADIUS.SM,
   },
   resetButton: {
-    borderColor: COLORS.BUTTON, // Yellow border
+    borderColor: colors.BUTTON, // Yellow border
     borderWidth: 1,
     borderRadius: BORDER_RADIUS.SM,
   },

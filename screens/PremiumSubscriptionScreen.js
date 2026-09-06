@@ -33,7 +33,8 @@ import {
   hasPremiumAccess,
   disconnectSubscriptions,
 } from '../services/premiumSubscriptionService';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, SHADOWS, COMMON_STYLES } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, SHADOWS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const PremiumSubscriptionScreen = ({ navigation, route }) => {
   const { user } = useAuth();
@@ -54,6 +55,8 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
   
   // State for local payment instructions modal
   const [showLocalPaymentModal, setShowLocalPaymentModal] = useState(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
   // (not hoisted) -- see components/PremiumGate.js for the full rationale.
@@ -344,7 +347,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
       <Card style={styles.trialStatusCard}>
         <Card.Content>
           <View style={styles.trialStatusHeader}>
-            <MaterialCommunityIcons name="timer-sand" size={24} color={COLORS.BUTTON} />
+            <MaterialCommunityIcons name="timer-sand" size={24} color={colors.BUTTON} />
             <Text style={styles.trialStatusTitle}>
               {trialStatus.isActive ? 'Trial Active' : 'Trial Expired'}
             </Text>
@@ -357,7 +360,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
               </Text>
               <ProgressBar 
                 progress={(7 - trialStatus.daysRemaining) / 7} 
-                color={COLORS.BUTTON}
+                color={colors.BUTTON}
                 style={styles.trialProgress}
               />
             </>
@@ -398,7 +401,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
             value={plan.id}
             status={isSelected ? 'checked' : 'unchecked'}
             onPress={() => !isDisabled && handlePlanSelect(plan.id)}
-            color={COLORS.BUTTON}
+            color={colors.BUTTON}
             disabled={isDisabled}
           />
           <View style={styles.planInfo}>
@@ -435,7 +438,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
               <MaterialCommunityIcons 
                 name="check" 
                 size={16} 
-                color={isDisabled ? COLORS.TEXT_SECONDARY : COLORS.SUCCESS} 
+                color={isDisabled ? colors.TEXT_SECONDARY : colors.SUCCESS} 
               />
               <Text style={[styles.featureText, isDisabled && styles.disabledText]}>
                 {feature}
@@ -514,7 +517,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
   if (initLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.BUTTON} />
+        <ActivityIndicator size="large" color={colors.BUTTON} />
         <Text style={styles.loadingText}>Loading subscription options...</Text>
       </View>
     );
@@ -522,11 +525,11 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <Appbar.Header style={{ backgroundColor: COLORS.BACKGROUND }}>
+      <Appbar.Header style={{ backgroundColor: colors.BACKGROUND }}>
         {canGoBack && (
           <Appbar.BackAction onPress={() => navigation.goBack()} />
         )}
-        <Appbar.Content title="Premium Access" titleStyle={COMMON_STYLES.headerTitle} />
+        <Appbar.Content title="Premium Access" titleStyle={[COMMON_STYLES.headerTitle, { color: colors.TEXT }]} />
         <Appbar.Action 
           icon="restore" 
           onPress={handleRestorePurchases}
@@ -537,7 +540,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <MaterialCommunityIcons name="crown" size={64} color={COLORS.BUTTON} />
+          <MaterialCommunityIcons name="crown" size={64} color={colors.BUTTON} />
           <Text style={styles.headerTitle}>Unlock Premium Features</Text>
           <Text style={styles.headerSubtitle}>
             Get unlimited access to thousands of books, audiobooks, and premium features
@@ -552,7 +555,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
           <Card style={styles.premiumStatusCard}>
             <Card.Content>
               <View style={styles.premiumStatusHeader}>
-                <MaterialCommunityIcons name="crown" size={24} color={COLORS.SUCCESS} />
+                <MaterialCommunityIcons name="crown" size={24} color={colors.SUCCESS} />
                 <Text style={styles.premiumStatusTitle}>Premium Active</Text>
               </View>
               <Text style={styles.premiumStatusText}>
@@ -611,7 +614,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
                 onPress={handleCloseSubscriptionModal}
                 style={styles.closeButton}
               >
-                <MaterialCommunityIcons name="close" size={24} color={COLORS.TEXT} />
+                <MaterialCommunityIcons name="close" size={24} color={colors.TEXT} />
               </TouchableOpacity>
             </View>
             
@@ -639,7 +642,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
               >
                 <View style={styles.optionHeader}>
                   <View style={styles.optionIconContainer}>
-                    <MaterialCommunityIcons name="bank" size={32} color={COLORS.BUTTON} />
+                    <MaterialCommunityIcons name="bank" size={32} color={colors.BUTTON} />
                   </View>
                   <View style={styles.optionInfo}>
                     <Text style={styles.optionTitle}>Local Subscription</Text>
@@ -678,7 +681,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
                     <MaterialCommunityIcons 
                       name={Platform.OS === 'ios' ? 'apple' : 'google-play'} 
                       size={32} 
-                      color={COLORS.BUTTON} 
+                      color={colors.BUTTON} 
                     />
                   </View>
                   <View style={styles.optionInfo}>
@@ -715,11 +718,11 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
                 <MaterialCommunityIcons 
                   name={subscriptionMessage.type === 'error' ? 'alert-circle' : 'check-circle'} 
                   size={20} 
-                  color={subscriptionMessage.type === 'error' ? COLORS.ERROR : COLORS.SUCCESS} 
+                  color={subscriptionMessage.type === 'error' ? colors.ERROR : colors.SUCCESS} 
                 />
                 <Text style={[
                   styles.modalMessageText,
-                  { color: subscriptionMessage.type === 'error' ? COLORS.ERROR : COLORS.SUCCESS }
+                  { color: subscriptionMessage.type === 'error' ? colors.ERROR : colors.SUCCESS }
                 ]}>
                   {subscriptionMessage.text}
                 </Text>
@@ -769,7 +772,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
                 onPress={handleCloseLocalPaymentModal}
                 style={styles.closeButton}
               >
-                <MaterialCommunityIcons name="close" size={24} color={COLORS.TEXT} />
+                <MaterialCommunityIcons name="close" size={24} color={colors.TEXT} />
               </TouchableOpacity>
             </View>
             
@@ -788,7 +791,7 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
             {/* Payment Instructions */}
             <ScrollView style={styles.instructionsContainer}>
               <View style={styles.instructionSection}>
-                <MaterialCommunityIcons name="information" size={24} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="information" size={24} color={colors.BUTTON} />
                 <Text style={styles.instructionTitle}>How to Pay</Text>
               </View>
               
@@ -799,15 +802,15 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
               <View style={styles.paymentMethods}>
                 <Text style={styles.methodsTitle}>Available Payment Methods:</Text>
                 <View style={styles.methodItem}>
-                  <MaterialCommunityIcons name="bank" size={20} color={COLORS.SUCCESS} />
+                  <MaterialCommunityIcons name="bank" size={20} color={colors.SUCCESS} />
                   <Text style={styles.methodText}>Bank Transfer</Text>
                 </View>
                 <View style={styles.methodItem}>
-                  <MaterialCommunityIcons name="cellphone" size={20} color={COLORS.SUCCESS} />
+                  <MaterialCommunityIcons name="cellphone" size={20} color={colors.SUCCESS} />
                   <Text style={styles.methodText}>Mobile Money (e-birr, Waafi)</Text>
                 </View>
                 <View style={styles.methodItem}>
-                  <MaterialCommunityIcons name="cash" size={20} color={COLORS.SUCCESS} />
+                  <MaterialCommunityIcons name="cash" size={20} color={colors.SUCCESS} />
                   <Text style={styles.methodText}>Local Currency Support</Text>
                 </View>
               </View>
@@ -852,20 +855,20 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   loadingText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginTop: SPACING.MD,
   },
   content: {
@@ -879,19 +882,19 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: FONTS.SIZES.HEADER,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginTop: SPACING.MD,
     marginBottom: SPACING.SM,
   },
   headerSubtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 22,
   },
   trialStatusCard: {
-    backgroundColor: COLORS.BUTTON_LIGHT,
+    backgroundColor: colors.BUTTON_LIGHT,
     margin: SPACING.MD,
     borderRadius: BORDER_RADIUS.LG,
   },
@@ -903,28 +906,28 @@ const styles = StyleSheet.create({
   trialStatusTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginLeft: SPACING.SM,
   },
   trialStatusText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.SM,
   },
   trialExpiredText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.ERROR,
+    color: colors.ERROR,
   },
   trialProgress: {
     height: 6,
     borderRadius: 3,
   },
   premiumStatusCard: {
-    backgroundColor: COLORS.SUCCESS + '20',
+    backgroundColor: colors.SUCCESS + '20',
     margin: SPACING.MD,
     borderRadius: BORDER_RADIUS.LG,
     borderWidth: 1,
-    borderColor: COLORS.SUCCESS,
+    borderColor: colors.SUCCESS,
   },
   premiumStatusHeader: {
     flexDirection: 'row',
@@ -934,17 +937,17 @@ const styles = StyleSheet.create({
   premiumStatusTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.SUCCESS,
+    color: colors.SUCCESS,
     marginLeft: SPACING.SM,
   },
   premiumStatusText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   sectionTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.MD,
     paddingHorizontal: SPACING.MD,
   },
@@ -953,29 +956,29 @@ const styles = StyleSheet.create({
     gap: SPACING.MD,
   },
   planCard: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     padding: SPACING.LG,
     borderWidth: 2,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     position: 'relative',
   },
   selectedPlanCard: {
-    borderColor: COLORS.BUTTON,
-    backgroundColor: COLORS.BUTTON_LIGHT,
+    borderColor: colors.BUTTON,
+    backgroundColor: colors.BUTTON_LIGHT,
   },
   popularPlanCard: {
-    borderColor: COLORS.SUCCESS,
+    borderColor: colors.SUCCESS,
   },
   disabledPlanCard: {
     opacity: 0.5,
-    borderColor: COLORS.TEXT_SECONDARY,
+    borderColor: colors.TEXT_SECONDARY,
   },
   popularBadge: {
     position: 'absolute',
     top: -10,
     left: SPACING.LG,
-    backgroundColor: COLORS.SUCCESS,
+    backgroundColor: colors.SUCCESS,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.XS,
     borderRadius: BORDER_RADIUS.SM,
@@ -983,13 +986,13 @@ const styles = StyleSheet.create({
   popularText: {
     fontSize: FONTS.SIZES.SMALL,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   expiredBadge: {
     position: 'absolute',
     top: -10,
     right: SPACING.LG,
-    backgroundColor: COLORS.ERROR,
+    backgroundColor: colors.ERROR,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.XS,
     borderRadius: BORDER_RADIUS.SM,
@@ -997,7 +1000,7 @@ const styles = StyleSheet.create({
   expiredText: {
     fontSize: FONTS.SIZES.SMALL,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   planHeader: {
     flexDirection: 'row',
@@ -1011,12 +1014,12 @@ const styles = StyleSheet.create({
   planName: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.XS,
   },
   planDescription: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     marginBottom: SPACING.SM,
   },
   priceContainer: {
@@ -1027,12 +1030,12 @@ const styles = StyleSheet.create({
   planPrice: {
     fontSize: FONTS.SIZES.TITLE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     marginRight: SPACING.XS,
   },
   planDuration: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
   },
   savingsContainer: {
     flexDirection: 'row',
@@ -1041,15 +1044,15 @@ const styles = StyleSheet.create({
   },
   originalPrice: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textDecorationLine: 'line-through',
   },
   savingsChip: {
-    backgroundColor: COLORS.SUCCESS,
+    backgroundColor: colors.SUCCESS,
   },
   savingsText: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     fontFamily: FONTS.BOLD,
   },
   featuresContainer: {
@@ -1062,21 +1065,21 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     flex: 1,
   },
   disabledText: {
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
   },
   actionContainer: {
     padding: SPACING.LG,
   },
   primaryButton: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.LG,
   },
   disabledButton: {
-    backgroundColor: COLORS.TEXT_SECONDARY,
+    backgroundColor: colors.TEXT_SECONDARY,
     borderRadius: BORDER_RADIUS.LG,
   },
   buttonContent: {
@@ -1089,12 +1092,12 @@ const styles = StyleSheet.create({
   termsTitle: {
     fontSize: FONTS.SIZES.MEDIUM,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.SM,
   },
   termsText: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     lineHeight: 18,
     marginBottom: SPACING.XS,
   },
@@ -1110,7 +1113,7 @@ const styles = StyleSheet.create({
   // BACKGROUND) instead of flat BACKGROUND -- same fix applied to every
   // other modal in the app this phase.
   subscriptionModalContent: {
-    backgroundColor: COLORS.MODAL_BACKGROUND,
+    backgroundColor: colors.MODAL_BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     width: '100%',
     maxWidth: 450,
@@ -1126,17 +1129,17 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   closeButton: {
     padding: SPACING.XS,
   },
   modalDivider: {
-    backgroundColor: COLORS.BORDER,
+    backgroundColor: colors.BORDER,
   },
   selectedPlanInfo: {
     padding: SPACING.LG,
-    backgroundColor: COLORS.BUTTON_LIGHT,
+    backgroundColor: colors.BUTTON_LIGHT,
     borderRadius: BORDER_RADIUS.MD,
     margin: SPACING.LG,
     marginBottom: 0,
@@ -1144,29 +1147,29 @@ const styles = StyleSheet.create({
   selectedPlanTitle: {
     fontSize: FONTS.SIZES.SMALL,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     marginBottom: SPACING.XS,
     textTransform: 'uppercase',
   },
   selectedPlanName: {
     fontSize: FONTS.SIZES.MEDIUM,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   subscriptionOptions: {
     padding: SPACING.LG,
     gap: SPACING.MD,
   },
   subscriptionOption: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     padding: SPACING.LG,
     borderWidth: 2,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   selectedOption: {
-    borderColor: COLORS.BUTTON,
-    backgroundColor: COLORS.BUTTON_LIGHT,
+    borderColor: colors.BUTTON,
+    backgroundColor: colors.BUTTON_LIGHT,
   },
   optionHeader: {
     flexDirection: 'row',
@@ -1177,7 +1180,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: BORDER_RADIUS.MD,
-    backgroundColor: COLORS.BUTTON_LIGHT,
+    backgroundColor: colors.BUTTON_LIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SPACING.MD,
@@ -1188,12 +1191,12 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.XS,
   },
   optionDescription: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     lineHeight: 20,
   },
   radioContainer: {
@@ -1204,18 +1207,18 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioButtonSelected: {
-    borderColor: COLORS.BUTTON,
+    borderColor: colors.BUTTON,
   },
   radioButtonInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
   },
   optionFeatures: {
     gap: SPACING.XS,
@@ -1230,7 +1233,7 @@ const styles = StyleSheet.create({
   // sites that actually wanted this one.
   modalFeatureText: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     lineHeight: 18,
   },
   modalMessageContainer: {
@@ -1253,23 +1256,23 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     borderRadius: BORDER_RADIUS.LG,
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.LG,
   },
   errorMessage: {
-    backgroundColor: COLORS.ERROR_LIGHT,
+    backgroundColor: colors.ERROR_LIGHT,
   },
   successMessage: {
-    backgroundColor: COLORS.SUCCESS + '20',
+    backgroundColor: colors.SUCCESS + '20',
   },
   // Local Payment Modal Styles
   localPaymentModalContent: {
-    backgroundColor: COLORS.MODAL_BACKGROUND,
+    backgroundColor: colors.MODAL_BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     width: '100%',
     maxWidth: 450,
@@ -1288,11 +1291,11 @@ const styles = StyleSheet.create({
   instructionTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   instructionText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     lineHeight: 22,
     marginBottom: SPACING.LG,
   },
@@ -1302,7 +1305,7 @@ const styles = StyleSheet.create({
   methodsTitle: {
     fontSize: FONTS.SIZES.MEDIUM,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.MD,
   },
   methodItem: {
@@ -1313,7 +1316,7 @@ const styles = StyleSheet.create({
   },
   methodText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   contactSection: {
     marginBottom: SPACING.LG,
@@ -1321,17 +1324,17 @@ const styles = StyleSheet.create({
   contactTitle: {
     fontSize: FONTS.SIZES.MEDIUM,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.SM,
   },
   contactDescription: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.SM,
   },
   contactBullet: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     marginBottom: SPACING.XS,
     paddingLeft: SPACING.SM,
   },
@@ -1339,7 +1342,7 @@ const styles = StyleSheet.create({
     padding: SPACING.LG,
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: COLORS.BORDER,
+    borderTopColor: colors.BORDER,
   },
   whatsappButton: {
     backgroundColor: '#25D366', // WhatsApp green
@@ -1361,7 +1364,7 @@ const styles = StyleSheet.create({
   },
   phoneNumber: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     marginBottom: SPACING.LG,
     textAlign: 'center',
   },
@@ -1370,11 +1373,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.XL,
     borderRadius: BORDER_RADIUS.MD,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   closeModalButtonText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
   },
 });

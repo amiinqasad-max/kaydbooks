@@ -22,7 +22,8 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getBooks, deleteBook, updateBook } from '../services/supabase';
 import { sanitizeBookArray } from '../utils/bookSanitizer';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const FILTER_OPTIONS = [
   { key: 'all', label: 'All Books' },
@@ -42,6 +43,8 @@ const AdminManageScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [menuVisible, setMenuVisible] = useState({});
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   // Load books
   const loadBooks = useCallback(async () => {
@@ -264,12 +267,12 @@ const AdminManageScreen = () => {
         </View>
       </Card>
     );
-  }, [menuVisible, handleToggleStatus, handleDeleteBook]);
+  }, [menuVisible, handleToggleStatus, handleDeleteBook, styles]);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading books...</Text>
       </View>
     );
@@ -366,65 +369,65 @@ const AdminManageScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue #021945
+    backgroundColor: colors.BACKGROUND, // Dark blue #021945
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
   },
   loadingText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     marginTop: SPACING.MD,
   },
   headerSurface: {
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.MD,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
+    borderBottomColor: colors.BORDER,
   },
   title: {
     fontSize: FONTS.SIZES.HEADER,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontWeight: 'bold',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     textAlign: 'center',
     marginBottom: SPACING.MD,
   },
   searchBar: {
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     marginBottom: SPACING.MD,
   },
   searchInput: {
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
   },
   filtersContainer: {
     marginBottom: SPACING.SM,
   },
   filterChip: {
     marginRight: SPACING.SM,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   selectedFilterChip: {
-    backgroundColor: COLORS.BUTTON, // Yellow when selected
+    backgroundColor: colors.BUTTON, // Yellow when selected
   },
   filterChipText: {
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
   },
   selectedFilterChipText: {
-    color: COLORS.BUTTON_TEXT, // Dark blue text on yellow
+    color: colors.BUTTON_TEXT, // Dark blue text on yellow
     fontWeight: '600',
   },
   scrollView: {
@@ -436,9 +439,9 @@ const styles = StyleSheet.create({
   },
   bookCard: {
     marginBottom: SPACING.MD,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     borderRadius: BORDER_RADIUS.MD,
   },
   bookCardContent: {
@@ -452,17 +455,17 @@ const styles = StyleSheet.create({
     width: 60,
     height: 80,
     borderRadius: BORDER_RADIUS.SM,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
   },
   placeholderCover: {
     width: 60,
     height: 80,
     borderRadius: BORDER_RADIUS.SM,
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.TEXT_SECONDARY, // Light gray border
+    borderColor: colors.TEXT_SECONDARY, // Light gray border
     borderStyle: 'dashed',
   },
   placeholderText: {
@@ -474,18 +477,18 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     fontSize: FONTS.SIZES.LARGE,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontWeight: '600',
     marginBottom: SPACING.XS,
   },
   bookAuthor: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     marginBottom: SPACING.XS,
   },
   bookCategory: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     marginBottom: SPACING.SM,
   },
   statusChips: {
@@ -494,16 +497,16 @@ const styles = StyleSheet.create({
     gap: SPACING.XS,
   },
   premiumChip: {
-    backgroundColor: COLORS.BUTTON, // Yellow
+    backgroundColor: colors.BUTTON, // Yellow
   },
   featuredChip: {
-    backgroundColor: COLORS.SUCCESS, // Green
+    backgroundColor: colors.SUCCESS, // Green
   },
   audioChip: {
-    backgroundColor: COLORS.INFO, // Blue
+    backgroundColor: colors.INFO, // Blue
   },
   chipText: {
-    color: COLORS.BUTTON_TEXT, // Dark blue text
+    color: colors.BUTTON_TEXT, // Dark blue text
     fontSize: 10,
     fontWeight: '600',
   },
@@ -511,10 +514,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   menuContent: {
-    backgroundColor: COLORS.BACKGROUND, // Dark blue
+    backgroundColor: colors.BACKGROUND, // Dark blue
   },
   deleteMenuText: {
-    color: COLORS.ERROR, // Red
+    color: colors.ERROR, // Red
   },
   emptyContainer: {
     flex: 1,
@@ -528,27 +531,27 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: FONTS.SIZES.LARGE,
-    color: COLORS.TEXT, // White text
+    color: colors.TEXT, // White text
     fontWeight: '600',
     marginBottom: SPACING.SM,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY, // Light gray
+    color: colors.TEXT_SECONDARY, // Light gray
     textAlign: 'center',
     marginBottom: SPACING.LG,
     lineHeight: 20,
   },
   emptyButton: {
-    backgroundColor: COLORS.BUTTON, // Yellow
+    backgroundColor: colors.BUTTON, // Yellow
     borderRadius: BORDER_RADIUS.SM,
   },
   fab: {
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: COLORS.BUTTON, // Yellow
+    backgroundColor: colors.BUTTON, // Yellow
   },
 });
 
