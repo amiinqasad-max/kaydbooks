@@ -35,11 +35,25 @@ const ModernHomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadHomeData();
-  }, [user]);
+  const getCategoryIcon = (category) => {
+    const iconMap = {
+      'Fiction': 'book-open-variant',
+      'History': 'history',
+      'Self Development': 'account-arrow-up',
+      'Novel': 'book-open-page-variant',
+      'General': 'book-multiple',
+      'Diini': 'mosque',
+      'Science': 'flask',
+      'Technology': 'laptop',
+      'Business': 'briefcase',
+      'Health': 'heart-pulse'
+    };
+    return iconMap[category] || 'book';
+  };
 
-  const loadHomeData = async () => {
+  // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
+  // (not hoisted) -- see components/PremiumGate.js for the full rationale.
+  async function loadHomeData() {
     try {
       setLoading(true);
       
@@ -84,7 +98,12 @@ const ModernHomeScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    loadHomeData();
+  }, [user]);
+
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -109,21 +128,6 @@ const ModernHomeScreen = ({ navigation }) => {
     return false;
   };
 
-  const getCategoryIcon = (category) => {
-    const iconMap = {
-      'Fiction': 'book-open-variant',
-      'History': 'history',
-      'Self Development': 'account-arrow-up',
-      'Novel': 'book-open-page-variant',
-      'General': 'book-multiple',
-      'Diini': 'mosque',
-      'Science': 'flask',
-      'Technology': 'laptop',
-      'Business': 'briefcase',
-      'Health': 'heart-pulse'
-    };
-    return iconMap[category] || 'book';
-  };
 
   const renderTopReadCard = ({ item }) => (
     <TouchableOpacity

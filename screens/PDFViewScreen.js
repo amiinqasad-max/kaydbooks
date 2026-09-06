@@ -393,7 +393,7 @@ const PDFViewScreen = ({ route, navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Notes</Text>
-            <Text style={styles.noteHint}>Notes are attached to the page you're on ({page}), since this PDF has no selectable text to highlight.</Text>
+            <Text style={styles.noteHint}>Notes are attached to the page you&apos;re on ({page}), since this PDF has no selectable text to highlight.</Text>
             <TextInput
               value={noteDraft}
               onChangeText={setNoteDraft}

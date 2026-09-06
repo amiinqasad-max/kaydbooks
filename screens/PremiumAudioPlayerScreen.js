@@ -113,22 +113,25 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
     setSliderValue(position);
   }, [position]);
 
-  const refreshBookmarks = async () => {
+  // PHASE 1.7: `function` declarations (hoisted) instead of
+  // `const ... = async () =>` (not hoisted) -- see components/PremiumGate.js
+  // for the full rationale.
+  async function refreshBookmarks() {
     if (!user) return;
     try {
       setBookmarks(await getAudioBookmarks(user.id, book.id));
     } catch (err) {
       console.error('Failed to load bookmarks:', err.message);
     }
-  };
+  }
 
-  const checkDownloadStatus = async () => {
+  async function checkDownloadStatus() {
     try {
       if (user) setIsDownloaded(!!(await checkIfDownloaded(user.id, book.id)));
     } catch (err) {
       console.error('Failed to check download status:', err.message);
     }
-  };
+  }
 
   const createBookmark = async () => {
     if (!user) {
@@ -186,20 +189,20 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
     }
   };
 
-  const startRotationAnimation = () => {
+  function startRotationAnimation() {
     Animated.loop(
       Animated.timing(rotationValue, { toValue: 1, duration: 10000, easing: Easing.linear, useNativeDriver: true })
     ).start();
-  };
+  }
 
-  const startWaveAnimation = () => {
+  function startWaveAnimation() {
     Animated.loop(
       Animated.sequence([
         Animated.timing(waveAnimation, { toValue: 1, duration: 1000, useNativeDriver: true }),
         Animated.timing(waveAnimation, { toValue: 0, duration: 1000, useNativeDriver: true }),
       ])
     ).start();
-  };
+  }
 
   const formatTime = (seconds) => {
     if (!Number.isFinite(seconds)) return '0:00';

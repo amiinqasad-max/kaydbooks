@@ -38,7 +38,9 @@ const EnhancedLibraryScreen = ({ navigation }) => {
     }
   }, [user, activeTab]);
 
-  const loadLibraryData = async () => {
+  // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
+  // (not hoisted) -- see components/PremiumGate.js for the full rationale.
+  async function loadLibraryData() {
     if (!user) return;
 
     try {
@@ -59,7 +61,7 @@ const EnhancedLibraryScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);

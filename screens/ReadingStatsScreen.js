@@ -31,13 +31,77 @@ const ReadingStatsScreen = ({ navigation }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadReadingStats();
+  const getWeeklyReadingData = async (sessions) => {
+    const weeklyData = [0, 0, 0, 0, 0, 0, 0];
+    const today = new Date();
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+      
+      const dayMinutes = sessions?.filter(session => session.date === dateString)
+        .reduce((sum, session) => sum + (session.duration_minutes || 0), 0) || 0;
+      
+      weeklyData[6 - i] = dayMinutes;
     }
-  }, [user]);
+    
+    return weeklyData;
+  };
 
-  const loadReadingStats = async () => {
+  const getMonthlyBooksData = async (completedBooks) => {
+    const monthlyData = [0, 0, 0, 0, 0, 0];
+    const today = new Date();
+    
+    for (let i = 0; i < 6; i++) {
+      const month = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() - i + 1, 1);
+      
+      const monthBooks = completedBooks?.filter(book => {
+        const bookDate = new Date(book.updated_at);
+        return bookDate >= month && bookDate < nextMonth;
+      }).length || 0;
+      
+      monthlyData[5 - i] = monthBooks;
+    }
+    
+    return monthlyData;
+  };
+
+  const calculateAchievements = (booksRead, hoursRead, sessions) => {
+    const achievements = [];
+    
+    if (booksRead >= 1) achievements.push({ name: 'First Book', icon: 'book', color: COLORS.SUCCESS });
+    if (booksRead >= 5) achievements.push({ name: 'Bookworm', icon: 'book-multiple', color: COLORS.BUTTON });
+    if (booksRead >= 10) achievements.push({ name: 'Book Lover', icon: 'heart', color: COLORS.ERROR });
+    if (hoursRead >= 10) achievements.push({ name: 'Dedicated Reader', icon: 'clock', color: COLORS.INFO });
+    if (hoursRead >= 50) achievements.push({ name: 'Reading Master', icon: 'trophy', color: COLORS.BUTTON });
+    
+    // Check for reading streak
+    const recentDays = sessions?.filter(session => {
+      const sessionDate = new Date(session.date);
+      const daysDiff = (new Date() - sessionDate) / (1000 * 60 * 60 * 24);
+      return daysDiff <= 7;
+    }).length || 0;
+    
+    if (recentDays >= 3) achievements.push({ name: 'Consistent Reader', icon: 'fire', color: COLORS.WARNING });
+    
+    return achievements;
+  };
+
+  // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
+  // (not hoisted) -- see components/PremiumGate.js for the full rationale.
+  //
+  // ALSO NOTE (found while making this edit, not fixed here -- out of
+  // scope for a hoisting fix): this queries the legacy `progress` table
+  // (flagged as possibly-dead in database/SCHEMA_DRIFT_REPORT.md) and a
+  // `reading_sessions` shape (`duration_minutes`, `date`) that does not
+  // match the `reading_sessions` table this codebase actually creates in
+  // supabase/migrations/003_authorization_and_schema_fixes.sql
+  // (`session_duration`, `created_at`). This screen's stats are very
+  // likely reading from tables/columns that don't hold the data the rest
+  // of the app writes -- needs its own follow-up, separate from this pass.
+  async function loadReadingStats() {
     try {
       // Get completed books count
       const { data: completedBooks, error: booksError } = await supabase
@@ -104,65 +168,15 @@ const ReadingStatsScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const getWeeklyReadingData = async (sessions) => {
-    const weeklyData = [0, 0, 0, 0, 0, 0, 0];
-    const today = new Date();
-    
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().split('T')[0];
-      
-      const dayMinutes = sessions?.filter(session => session.date === dateString)
-        .reduce((sum, session) => sum + (session.duration_minutes || 0), 0) || 0;
-      
-      weeklyData[6 - i] = dayMinutes;
+  useEffect(() => {
+    if (user) {
+      loadReadingStats();
     }
-    
-    return weeklyData;
-  };
+  }, [user]);
 
-  const getMonthlyBooksData = async (completedBooks) => {
-    const monthlyData = [0, 0, 0, 0, 0, 0];
-    const today = new Date();
-    
-    for (let i = 0; i < 6; i++) {
-      const month = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() - i + 1, 1);
-      
-      const monthBooks = completedBooks?.filter(book => {
-        const bookDate = new Date(book.updated_at);
-        return bookDate >= month && bookDate < nextMonth;
-      }).length || 0;
-      
-      monthlyData[5 - i] = monthBooks;
-    }
-    
-    return monthlyData;
-  };
 
-  const calculateAchievements = (booksRead, hoursRead, sessions) => {
-    const achievements = [];
-    
-    if (booksRead >= 1) achievements.push({ name: 'First Book', icon: 'book', color: COLORS.SUCCESS });
-    if (booksRead >= 5) achievements.push({ name: 'Bookworm', icon: 'book-multiple', color: COLORS.BUTTON });
-    if (booksRead >= 10) achievements.push({ name: 'Book Lover', icon: 'heart', color: COLORS.ERROR });
-    if (hoursRead >= 10) achievements.push({ name: 'Dedicated Reader', icon: 'clock', color: COLORS.INFO });
-    if (hoursRead >= 50) achievements.push({ name: 'Reading Master', icon: 'trophy', color: COLORS.BUTTON });
-    
-    // Check for reading streak
-    const recentDays = sessions?.filter(session => {
-      const sessionDate = new Date(session.date);
-      const daysDiff = (new Date() - sessionDate) / (1000 * 60 * 60 * 24);
-      return daysDiff <= 7;
-    }).length || 0;
-    
-    if (recentDays >= 3) achievements.push({ name: 'Consistent Reader', icon: 'fire', color: COLORS.WARNING });
-    
-    return achievements;
-  };
 
   const chartConfig = {
     backgroundColor: COLORS.BACKGROUND,

@@ -30,7 +30,9 @@ const ModernTopReadsScreen = ({ navigation }) => {
     loadTopReads();
   }, []);
 
-  const loadTopReads = async () => {
+  // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
+  // (not hoisted) -- see components/PremiumGate.js for the full rationale.
+  async function loadTopReads() {
     try {
       setLoading(true);
       const booksData = await getBooks();
@@ -57,7 +59,7 @@ const ModernTopReadsScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);

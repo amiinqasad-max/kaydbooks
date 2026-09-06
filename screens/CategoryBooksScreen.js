@@ -30,7 +30,9 @@ const CategoryBooksScreen = ({ navigation, route }) => {
     loadBooks();
   }, [category]);
 
-  const loadBooks = async () => {
+  // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
+  // (not hoisted) -- see components/PremiumGate.js for the full rationale.
+  async function loadBooks() {
     try {
       setLoading(true);
       const booksData = await getBooksByCategory(category, 50);
@@ -52,7 +54,7 @@ const CategoryBooksScreen = ({ navigation, route }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);

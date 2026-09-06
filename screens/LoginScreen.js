@@ -122,7 +122,7 @@ const LoginScreen = ({ navigation }) => {
               style={styles.linkButton}
               textColor={COLORS.BUTTON}
             >
-              Don't have an account? Sign Up
+              Don&apos;t have an account? Sign Up
             </Button>
           </Card.Content>
         </Card>

@@ -39,6 +39,42 @@ const BookDetailScreen = ({ route, navigation }) => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [readingProgress, setReadingProgress] = useState(0);
 
+  // PHASE 1.7: moved above the useEffect that calls them -- see
+  // components/PremiumGate.js for the full rationale.
+  async function checkFavoriteStatus() {
+    try {
+      const status = await getFavoriteStatus(user.id, book.id);
+      setIsFav(status);
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  }
+
+  async function checkDownloadStatus() {
+    try {
+      const [audio, pdf] = await Promise.all([
+        checkIfDownloaded(user.id, book.id, 'audio'),
+        checkIfDownloaded(user.id, book.id, 'pdf'),
+      ]);
+      setIsAudioDownloaded(audio);
+      setIsPdfDownloaded(pdf);
+    } catch (error) {
+      console.error('Error checking download status:', error);
+    }
+  }
+
+  async function loadReadingProgress() {
+    try {
+      const progress = await getReadingProgressDetailed(user.id, book.id);
+      if (progress) {
+        const percentage = (progress.current_page / progress.total_pages) * 100;
+        setReadingProgress(Math.round(percentage));
+      }
+    } catch (error) {
+      console.error('Error loading reading progress:', error);
+    }
+  }
+
   useEffect(() => {
     if (user && book) {
       checkFavoriteStatus();
@@ -144,40 +180,6 @@ const BookDetailScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Error toggling favorite:', error);
       showToast('Error updating favorites');
-    }
-  };
-
-  const checkFavoriteStatus = async () => {
-    try {
-      const status = await getFavoriteStatus(user.id, book.id);
-      setIsFav(status);
-    } catch (error) {
-      console.error('Error checking favorite status:', error);
-    }
-  };
-
-  const checkDownloadStatus = async () => {
-    try {
-      const [audio, pdf] = await Promise.all([
-        checkIfDownloaded(user.id, book.id, 'audio'),
-        checkIfDownloaded(user.id, book.id, 'pdf'),
-      ]);
-      setIsAudioDownloaded(audio);
-      setIsPdfDownloaded(pdf);
-    } catch (error) {
-      console.error('Error checking download status:', error);
-    }
-  };
-
-  const loadReadingProgress = async () => {
-    try {
-      const progress = await getReadingProgressDetailed(user.id, book.id);
-      if (progress) {
-        const percentage = (progress.current_page / progress.total_pages) * 100;
-        setReadingProgress(Math.round(percentage));
-      }
-    } catch (error) {
-      console.error('Error loading reading progress:', error);
     }
   };
 

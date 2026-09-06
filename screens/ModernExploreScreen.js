@@ -42,7 +42,10 @@ const ModernExploreScreen = ({ navigation }) => {
     filterBooks();
   }, [books, searchQuery, selectedCategory]);
 
-  const loadBooks = async () => {
+  // PHASE 1.7: `function` declarations (hoisted) instead of
+  // `const ... = async () =>` / `const ... = () =>` (not hoisted) -- see
+  // components/PremiumGate.js for the full rationale.
+  async function loadBooks() {
     try {
       setLoading(true);
       const booksData = await getBooks();
@@ -63,9 +66,9 @@ const ModernExploreScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const filterBooks = () => {
+  function filterBooks() {
     let filtered = books;
 
     // Filter by search query
@@ -82,7 +85,7 @@ const ModernExploreScreen = ({ navigation }) => {
     }
 
     setFilteredBooks(filtered);
-  };
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);

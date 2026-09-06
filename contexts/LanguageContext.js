@@ -19,11 +19,9 @@ export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadSavedLanguage();
-  }, []);
-
-  const loadSavedLanguage = async () => {
+  // PHASE 1.7: moved above the useEffect that calls it -- see
+  // components/PremiumGate.js for the full rationale.
+  async function loadSavedLanguage() {
     try {
       const savedLanguage = await AsyncStorage.getItem('user-language');
       if (savedLanguage) {
@@ -35,7 +33,11 @@ export const LanguageProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    loadSavedLanguage();
+  }, []);
 
   const changeLanguage = async (languageCode) => {
     try {

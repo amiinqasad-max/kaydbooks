@@ -55,21 +55,9 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
   // State for local payment instructions modal
   const [showLocalPaymentModal, setShowLocalPaymentModal] = useState(false);
 
-  useEffect(() => {
-    initializeScreen();
-    
-    // Prevent back button on Android if user must subscribe
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      return !canGoBack;
-    });
-
-    return () => {
-      backHandler.remove();
-      disconnectSubscriptions();
-    };
-  }, []);
-
-  const initializeScreen = async () => {
+  // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
+  // (not hoisted) -- see components/PremiumGate.js for the full rationale.
+  async function initializeScreen() {
     try {
       setInitLoading(true);
       
@@ -121,7 +109,22 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
     } finally {
       setInitLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    initializeScreen();
+    
+    // Prevent back button on Android if user must subscribe
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      return !canGoBack;
+    });
+
+    return () => {
+      backHandler.remove();
+      disconnectSubscriptions();
+    };
+  }, []);
+
 
   const handlePlanSelect = (planId) => {
     setSelectedPlan(planId);
@@ -656,9 +659,9 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
                   </View>
                 </View>
                 <View style={styles.optionFeatures}>
-                  <Text style={styles.featureText}>• Direct bank transfer or mobile money</Text>
-                  <Text style={styles.featureText}>• Manual verification process</Text>
-                  <Text style={styles.featureText}>• Local currency support</Text>
+                  <Text style={styles.modalFeatureText}>• Direct bank transfer or mobile money</Text>
+                  <Text style={styles.modalFeatureText}>• Manual verification process</Text>
+                  <Text style={styles.modalFeatureText}>• Local currency support</Text>
                 </View>
               </TouchableOpacity>
 
@@ -696,9 +699,9 @@ const PremiumSubscriptionScreen = ({ navigation, route }) => {
                   </View>
                 </View>
                 <View style={styles.optionFeatures}>
-                  <Text style={styles.featureText}>• Secure payment processing</Text>
-                  <Text style={styles.featureText}>• Automatic subscription management</Text>
-                  <Text style={styles.featureText}>• Instant activation</Text>
+                  <Text style={styles.modalFeatureText}>• Secure payment processing</Text>
+                  <Text style={styles.modalFeatureText}>• Automatic subscription management</Text>
+                  <Text style={styles.modalFeatureText}>• Instant activation</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -1214,7 +1217,15 @@ const styles = StyleSheet.create({
   optionFeatures: {
     gap: SPACING.XS,
   },
-  featureText: {
+  // PHASE 1.7 FIX: this was a second `featureText` key in the same
+  // StyleSheet.create({...}) object -- a real bug (no-dupe-keys), not
+  // cosmetic. Object literals silently keep only the LAST value for a
+  // duplicate key, so every consumer of `styles.featureText` (including
+  // the unrelated plan-comparison list at this screen's top, which wants
+  // the OTHER definition just above) was getting this smaller, dimmer
+  // style instead of its own. Renamed and repointed the 6 modal call
+  // sites that actually wanted this one.
+  modalFeatureText: {
     fontSize: FONTS.SIZES.SMALL,
     color: COLORS.TEXT_SECONDARY,
     lineHeight: 18,

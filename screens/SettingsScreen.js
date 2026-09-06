@@ -44,11 +44,15 @@ const SettingsScreen = ({ navigation }) => {
     { label: 'Arabic', value: 'Arabic' },
   ];
 
-  useEffect(() => {
-    loadUserProfile();
-  }, [user]);
-
-  const loadUserProfile = async () => {
+  // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
+  // (not hoisted) -- see components/PremiumGate.js for the full rationale.
+  //
+  // ALSO NOTE (found while making this edit, not fixed here): this reads/
+  // writes `profiles.theme_mode` / `.language` / `.notifications_enabled`,
+  // columns not present in database/schema.sql or migration 003/004 --
+  // this insert is likely failing (or silently adding unknown-column
+  // errors) against the real schema. Needs its own follow-up.
+  async function loadUserProfile() {
     if (!user) return;
 
     try {
@@ -92,7 +96,12 @@ const SettingsScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    loadUserProfile();
+  }, [user]);
+
 
   const updateProfileSetting = async (field, value) => {
     if (!user) return;

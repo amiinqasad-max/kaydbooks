@@ -34,7 +34,10 @@ const DownloadsLibraryScreen = ({ navigation }) => {
     filterDownloads();
   }, [downloads, searchQuery]);
 
-  const loadDownloads = async () => {
+  // PHASE 1.7: `function` declarations (hoisted) instead of
+  // `const ... = async () =>` / `const ... = () =>` (not hoisted) -- see
+  // components/PremiumGate.js for the full rationale.
+  async function loadDownloads() {
     try {
       setLoading(true);
       const userDownloads = await getUserDownloads(user.id);
@@ -45,7 +48,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -53,7 +56,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const filterDownloads = () => {
+  function filterDownloads() {
     // PHASE 1: downloaded PDFs used to be hidden here because PDF
     // downloads were disabled app-wide (see services/supabase.js's
     // addToUserDownloads). Offline ebook reading is now real -- show both.
@@ -68,7 +71,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
       item.books?.category?.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredDownloads(filtered);
-  };
+  }
 
   const removeDownload = async (downloadItem) => {
     Alert.alert(

@@ -30,11 +30,13 @@ const PremiumGate = ({
   const [loading, setLoading] = useState(true);
   const [premiumStatus, setPremiumStatus] = useState(null);
 
-  useEffect(() => {
-    checkPremiumAccess();
-  }, [user]);
-
-  const checkPremiumAccess = async () => {
+  // PHASE 1.7: moved above the useEffect that calls it. A plain `function`
+  // declaration is hoisted in JS regardless of order, but ESLint's
+  // react-hooks/immutability rule (React Compiler-oriented) flags a
+  // function used before its *textual* position in the component
+  // regardless of hoisting -- satisfying it means literal reordering, not
+  // just switching declaration styles.
+  async function checkPremiumAccess() {
     try {
       setLoading(true);
       const status = await hasPremiumAccess(user.id);
@@ -46,7 +48,11 @@ const PremiumGate = ({
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    checkPremiumAccess();
+  }, [user]);
 
   const handleUpgrade = () => {
     if (navigation) {

@@ -270,7 +270,7 @@ const DeleteAccountScreen = ({ navigation }) => {
       
       {confirmationText && !isStep3Valid() && (
         <Text style={[styles.validationText, { color: theme.error }]}>
-          Text doesn't match. Please type exactly: DELETE MY ACCOUNT
+          Text doesn&apos;t match. Please type exactly: DELETE MY ACCOUNT
         </Text>
       )}
     </Animated.View>
