@@ -25,7 +25,7 @@ import {
   getAudioBookmarks,
   deleteAudioBookmark,
 } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { COLORS, FONTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, GRADIENTS } from '../constants/theme';
 import { downloadAudioBook } from '../services/downloadManager';
 
 const { width, height } = Dimensions.get('window');
@@ -220,7 +220,7 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
   if (isLoading && (!currentBook || currentBook.id !== book.id)) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <LinearGradient colors={[COLORS.BACKGROUND, 'rgba(250, 181, 0, 0.1)']} style={styles.gradient}>
+        <LinearGradient colors={GRADIENTS.SURFACE_FADE} style={styles.gradient}>
           <MaterialCommunityIcons name="loading" size={50} color={COLORS.BUTTON} />
           <Text style={styles.loadingText}>Loading audio...</Text>
         </LinearGradient>
@@ -231,7 +231,7 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
   if (error && (!currentBook || currentBook.id !== book.id)) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <LinearGradient colors={[COLORS.BACKGROUND, 'rgba(250, 181, 0, 0.1)']} style={styles.gradient}>
+        <LinearGradient colors={GRADIENTS.SURFACE_FADE} style={styles.gradient}>
           <MaterialCommunityIcons name="alert-circle-outline" size={50} color={COLORS.TEXT} />
           <Text style={styles.loadingText}>{error}</Text>
           <Button mode="contained" onPress={() => navigation.goBack()} style={{ marginTop: SPACING.LG }}>
@@ -244,7 +244,7 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[COLORS.BACKGROUND, 'rgba(250, 181, 0, 0.05)']} style={styles.gradient}>
+      <LinearGradient colors={GRADIENTS.SURFACE_FADE} style={styles.gradient}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()} accessibilityLabel="Minimize player">
             <MaterialCommunityIcons name="chevron-down" size={28} color={COLORS.TEXT} />
@@ -304,7 +304,7 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
             <MaterialCommunityIcons name="rewind-15" size={32} color={COLORS.TEXT} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.playButton} onPress={toggle} accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
-            <LinearGradient colors={[COLORS.BUTTON, 'rgba(250, 181, 0, 0.8)']} style={styles.playButtonGradient}>
+            <LinearGradient colors={GRADIENTS.ACCENT_BUTTON} style={styles.playButtonGradient}>
               <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={40} color={COLORS.BUTTON_TEXT} />
             </LinearGradient>
           </TouchableOpacity>
@@ -439,14 +439,14 @@ const styles = StyleSheet.create({
   loadingText: { color: COLORS.TEXT, fontSize: FONTS.SIZES.MEDIUM, marginTop: SPACING.MD, textAlign: 'center', paddingHorizontal: SPACING.LG },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.LG, paddingTop: 50, paddingBottom: SPACING.LG },
   headerButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.1)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: FONTS.SIZES.LARGE, fontWeight: 'bold', color: COLORS.TEXT },
+  headerTitle: { ...TYPOGRAPHY.h3, color: COLORS.TEXT },
   coverContainer: { alignItems: 'center', marginVertical: SPACING.XL },
   coverWrapper: { width: COVER_SIZE, height: COVER_SIZE, borderRadius: COVER_SIZE / 2, elevation: 20, shadowColor: COLORS.BUTTON, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
   coverImage: { width: COVER_SIZE, height: COVER_SIZE, borderRadius: COVER_SIZE / 2 },
   playingIndicator: { position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -15 }, { translateY: -15 }], width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(0, 0, 0, 0.7)', alignItems: 'center', justifyContent: 'center' },
   bookInfo: { alignItems: 'center', paddingHorizontal: SPACING.LG, marginBottom: SPACING.XL },
-  bookTitle: { fontSize: FONTS.SIZES.XLARGE, fontWeight: 'bold', color: COLORS.TEXT, textAlign: 'center', marginBottom: SPACING.SM },
-  bookAuthor: { fontSize: FONTS.SIZES.LARGE, color: COLORS.TEXT, opacity: 0.8, textAlign: 'center', marginBottom: SPACING.XS },
+  bookTitle: { ...TYPOGRAPHY.h2, color: COLORS.TEXT, textAlign: 'center', marginBottom: SPACING.SM },
+  bookAuthor: { ...TYPOGRAPHY.body, color: COLORS.TEXT, opacity: 0.8, textAlign: 'center', marginBottom: SPACING.XS },
   chapterText: { fontSize: FONTS.SIZES.MEDIUM, color: COLORS.BUTTON, textAlign: 'center' },
   progressContainer: { paddingHorizontal: SPACING.LG, marginBottom: SPACING.XL },
   timeContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.SM },
@@ -463,8 +463,11 @@ const styles = StyleSheet.create({
   secondaryButton: { alignItems: 'center', padding: SPACING.SM },
   secondaryButtonText: { fontSize: FONTS.SIZES.SMALL, color: COLORS.TEXT, marginTop: SPACING.XS },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: COLORS.BACKGROUND, borderRadius: BORDER_RADIUS.LG, padding: SPACING.LG, width: width * 0.8, maxHeight: height * 0.6 },
-  modalTitle: { fontSize: FONTS.SIZES.LARGE, fontWeight: 'bold', color: COLORS.TEXT, textAlign: 'center', marginBottom: SPACING.LG },
+  // PHASE 2: modalContent now uses MODAL_BACKGROUND (a distinct, elevated
+  // color as of this phase's design-system update) instead of the flat
+  // screen BACKGROUND, same fix applied to PDFViewScreen's modals.
+  modalContent: { backgroundColor: COLORS.MODAL_BACKGROUND, borderRadius: BORDER_RADIUS.LG, padding: SPACING.LG, width: width * 0.8, maxHeight: height * 0.6 },
+  modalTitle: { ...TYPOGRAPHY.h3, color: COLORS.TEXT, textAlign: 'center', marginBottom: SPACING.LG },
   speedOption: { padding: SPACING.MD, borderRadius: BORDER_RADIUS.MD, marginBottom: SPACING.SM, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
   speedOptionSelected: { backgroundColor: COLORS.BUTTON },
   speedOptionText: { fontSize: FONTS.SIZES.MEDIUM, color: COLORS.TEXT, textAlign: 'center' },

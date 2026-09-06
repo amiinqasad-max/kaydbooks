@@ -15,7 +15,7 @@ import Pdf from 'react-native-pdf';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import debounce from 'lodash.debounce';
-import { COLORS, SPACING } from '../constants/theme';
+import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
 import {
   getSignedFileUrl,
   getChaptersForBook,
@@ -458,17 +458,23 @@ const styles = StyleSheet.create({
   bookmarkFabText: { color: COLORS.BUTTON_TEXT, fontSize: 12, fontWeight: '600' },
   offlineBadge: { position: 'absolute', top: 90, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   offlineBadgeText: { color: COLORS.TEXT, fontSize: 11 },
+  // PHASE 2: modalContent now uses MODAL_BACKGROUND (a distinct, elevated
+  // color as of this phase's design-system update) instead of the flat
+  // screen BACKGROUND -- the bottom sheet now visibly reads as "above"
+  // the page behind it. Text styles moved onto the TYPOGRAPHY scale.
+  // Everything else on this screen (reader logic, honesty limits,
+  // controls-disappear behavior) is unchanged -- see the file header.
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: COLORS.BACKGROUND, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: SPACING.LG, maxHeight: '70%' },
-  modalTitle: { color: COLORS.TEXT, fontSize: 18, fontWeight: 'bold', marginBottom: SPACING.MD },
+  modalContent: { backgroundColor: COLORS.MODAL_BACKGROUND, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: SPACING.LG, maxHeight: '70%' },
+  modalTitle: { ...TYPOGRAPHY.h3, color: COLORS.TEXT, marginBottom: SPACING.MD },
   listRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.BORDER },
-  listRowText: { color: COLORS.TEXT, fontSize: 14 },
-  listRowMeta: { color: COLORS.TEXT_SECONDARY, fontSize: 12 },
-  emptyText: { color: COLORS.TEXT_SECONDARY, textAlign: 'center', marginVertical: 12 },
-  noteHint: { color: COLORS.TEXT_SECONDARY, fontSize: 12, marginBottom: 8 },
-  noteInput: { color: COLORS.TEXT, borderWidth: 1, borderColor: COLORS.BORDER, borderRadius: 8, padding: 10, minHeight: 60, marginBottom: 8, textAlignVertical: 'top' },
+  listRowText: { ...TYPOGRAPHY.body, color: COLORS.TEXT },
+  listRowMeta: { ...TYPOGRAPHY.caption, color: COLORS.TEXT_SECONDARY },
+  emptyText: { ...TYPOGRAPHY.body, color: COLORS.TEXT_SECONDARY, textAlign: 'center', marginVertical: 12 },
+  noteHint: { ...TYPOGRAPHY.caption, color: COLORS.TEXT_SECONDARY, marginBottom: 8 },
+  noteInput: { ...TYPOGRAPHY.body, color: COLORS.TEXT, borderWidth: 1, borderColor: COLORS.BORDER, borderRadius: 8, padding: 10, minHeight: 60, marginBottom: 8, textAlignVertical: 'top' },
   modalClose: { alignSelf: 'center', paddingVertical: 10 },
-  modalCloseText: { color: COLORS.BUTTON, fontWeight: '600' },
+  modalCloseText: { ...TYPOGRAPHY.button, color: COLORS.ACCENT },
 });
 
 export default PDFViewScreen;
