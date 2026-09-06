@@ -8,7 +8,8 @@ import {
   removeFromFavorites,
   isFavorite,
 } from '../services/supabase';
-import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
+import { TYPOGRAPHY, SPACING } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { BookCard, EmptyState, ShelfSkeleton } from '../components/ui';
 
 // PHASE 2 REWRITE (was an entirely light-themed screen -- white background,
@@ -37,6 +38,8 @@ const CategoryBooksScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [favorites, setFavorites] = useState({});
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     loadBooks();
@@ -103,7 +106,7 @@ const CategoryBooksScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.BackAction color={COLORS.TEXT} onPress={() => navigation.goBack()} />
+        <Appbar.BackAction color={colors.TEXT} onPress={() => navigation.goBack()} />
         <Appbar.Content title={category} titleStyle={styles.appbarTitle} />
       </Appbar.Header>
 
@@ -133,7 +136,7 @@ const CategoryBooksScreen = ({ navigation, route }) => {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.ACCENT} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ACCENT} />
           }
           ListHeaderComponent={
             <View style={styles.headerContainer}>
@@ -158,17 +161,17 @@ const CategoryBooksScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   appbar: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
   },
   appbarTitle: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   listContainer: {
     padding: SPACING.MD,
@@ -177,15 +180,15 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.MD,
     paddingBottom: SPACING.SM_MD,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.DIVIDER,
+    borderBottomColor: colors.DIVIDER,
   },
   categoryTitle: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   bookCount: {
     ...TYPOGRAPHY.bodySmall,
-    color: COLORS.TEXT_MUTED,
+    color: colors.TEXT_MUTED,
     marginTop: 4,
   },
   cardWrapper: {
@@ -193,14 +196,14 @@ const styles = StyleSheet.create({
   },
   favoriteHint: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.TEXT_MUTED,
+    color: colors.TEXT_MUTED,
     alignSelf: 'flex-end',
     marginTop: -SPACING.SM,
     marginBottom: SPACING.SM,
     paddingHorizontal: SPACING.SM,
   },
   favoriteHintActive: {
-    color: COLORS.ERROR,
+    color: colors.ERROR,
   },
 });
 

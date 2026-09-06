@@ -14,7 +14,7 @@ import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
-import { COLORS, FONTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { FONTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
 
 const SettingsScreen = ({ navigation }) => {
   const { user, signOut } = useAuth();
@@ -24,7 +24,8 @@ const SettingsScreen = ({ navigation }) => {
   // toggling "Dark Theme" here had ZERO visible effect anywhere. Now
   // reads/writes the real, app-wide ThemeContext (see
   // contexts/ThemeContext.js), which components/ui/* actually consumes.
-  const { themeMode, setThemeMode } = useTheme();
+  const { themeMode, setThemeMode, colors } = useTheme();
+  const styles = createStyles(colors);
 
   // Settings state
   const [profile, setProfile] = useState(null);
@@ -314,13 +315,13 @@ const SettingsScreen = ({ navigation }) => {
             titleStyle={styles.listTitle}
             description={themeMode === 'dark' ? 'Enabled' : 'Disabled'}
             descriptionStyle={styles.listSubtitle}
-            left={() => <MaterialCommunityIcons name="theme-light-dark" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+            left={() => <MaterialCommunityIcons name="theme-light-dark" size={24} color={colors.BUTTON} style={styles.listIcon} />}
             right={() => (
               <Switch
                 value={themeMode === 'dark'}
                 onValueChange={handleThemeToggle}
-                trackColor={{ false: COLORS.BORDER, true: COLORS.BUTTON }}
-                thumbColor={COLORS.TEXT}
+                trackColor={{ false: colors.BORDER, true: colors.BUTTON }}
+                thumbColor={colors.TEXT}
               />
             )}
           />
@@ -332,8 +333,8 @@ const SettingsScreen = ({ navigation }) => {
               titleStyle={styles.listTitle}
               description={language}
               descriptionStyle={styles.listSubtitle}
-              left={() => <MaterialCommunityIcons name="translate" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
-              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+              left={() => <MaterialCommunityIcons name="translate" size={24} color={colors.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={colors.TEXT} />}
             />
           </TouchableOpacity>
 
@@ -343,13 +344,13 @@ const SettingsScreen = ({ navigation }) => {
             titleStyle={styles.listTitle}
             description={notificationsEnabled ? 'Enabled' : 'Disabled'}
             descriptionStyle={styles.listSubtitle}
-            left={() => <MaterialCommunityIcons name="bell" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+            left={() => <MaterialCommunityIcons name="bell" size={24} color={colors.BUTTON} style={styles.listIcon} />}
             right={() => (
               <Switch
                 value={notificationsEnabled}
                 onValueChange={handleNotificationsToggle}
-                trackColor={{ false: COLORS.BORDER, true: COLORS.BUTTON }}
-                thumbColor={COLORS.TEXT}
+                trackColor={{ false: colors.BORDER, true: colors.BUTTON }}
+                thumbColor={colors.TEXT}
               />
             )}
           />
@@ -366,8 +367,8 @@ const SettingsScreen = ({ navigation }) => {
               titleStyle={styles.listTitle}
               description="Update name and email"
               descriptionStyle={styles.listSubtitle}
-              left={() => <MaterialCommunityIcons name="account-edit" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
-              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+              left={() => <MaterialCommunityIcons name="account-edit" size={24} color={colors.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={colors.TEXT} />}
             />
           </TouchableOpacity>
 
@@ -378,8 +379,8 @@ const SettingsScreen = ({ navigation }) => {
               titleStyle={styles.listTitle}
               description="Update your password"
               descriptionStyle={styles.listSubtitle}
-              left={() => <MaterialCommunityIcons name="lock-reset" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
-              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+              left={() => <MaterialCommunityIcons name="lock-reset" size={24} color={colors.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={colors.TEXT} />}
             />
           </TouchableOpacity>
 
@@ -394,11 +395,11 @@ const SettingsScreen = ({ navigation }) => {
             <List.Item
               style={styles.listItem}
               title="Delete Account"
-              titleStyle={[styles.listTitle, { color: COLORS.ERROR }]}
+              titleStyle={[styles.listTitle, { color: colors.ERROR }]}
               description="Permanently delete account"
               descriptionStyle={styles.listSubtitle}
-              left={() => <MaterialCommunityIcons name="account-remove" size={24} color={COLORS.ERROR} style={styles.listIcon} />}
-              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.ERROR} />}
+              left={() => <MaterialCommunityIcons name="account-remove" size={24} color={colors.ERROR} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={colors.ERROR} />}
             />
           </TouchableOpacity>
         </View>
@@ -414,8 +415,8 @@ const SettingsScreen = ({ navigation }) => {
               titleStyle={styles.listTitle}
               description="Remove all offline content"
               descriptionStyle={styles.listSubtitle}
-              left={() => <MaterialCommunityIcons name="download-off" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
-              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+              left={() => <MaterialCommunityIcons name="download-off" size={24} color={colors.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={colors.TEXT} />}
             />
           </TouchableOpacity>
 
@@ -433,8 +434,8 @@ const SettingsScreen = ({ navigation }) => {
               titleStyle={styles.listTitle}
               description="View privacy policy"
               descriptionStyle={styles.listSubtitle}
-              left={() => <MaterialCommunityIcons name="shield-account" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
-              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+              left={() => <MaterialCommunityIcons name="shield-account" size={24} color={colors.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={colors.TEXT} />}
             />
           </TouchableOpacity>
 
@@ -442,11 +443,11 @@ const SettingsScreen = ({ navigation }) => {
             <List.Item
               style={styles.listItem}
               title="Logout"
-              titleStyle={[styles.listTitle, { color: COLORS.ERROR }]}
+              titleStyle={[styles.listTitle, { color: colors.ERROR }]}
               description="Sign out of your account"
               descriptionStyle={styles.listSubtitle}
-              left={() => <MaterialCommunityIcons name="logout" size={24} color={COLORS.ERROR} style={styles.listIcon} />}
-              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.ERROR} />}
+              left={() => <MaterialCommunityIcons name="logout" size={24} color={colors.ERROR} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={colors.ERROR} />}
             />
           </TouchableOpacity>
         </View>
@@ -549,12 +550,12 @@ const SettingsScreen = ({ navigation }) => {
             >
               <Text style={[
                 styles.languageText,
-                language === lang.value && { color: COLORS.BUTTON }
+                language === lang.value && { color: colors.BUTTON }
               ]}>
                 {lang.label}
               </Text>
               {language === lang.value && (
-                <MaterialCommunityIcons name="check" size={24} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="check" size={24} color={colors.BUTTON} />
               )}
             </TouchableOpacity>
           ))}
@@ -564,7 +565,7 @@ const SettingsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: COMMON_STYLES.container,
   scrollView: {
     flex: 1,
@@ -578,15 +579,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.ACCENT,
+    color: colors.ACCENT,
     marginHorizontal: SPACING.LG,
     marginBottom: SPACING.SM,
     marginTop: SPACING.MD,
   },
   listItem: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
+    borderBottomColor: colors.BORDER,
     paddingVertical: SPACING.MD,
   },
   listIcon: {
@@ -595,19 +596,19 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     fontWeight: '600',
   },
   listSubtitle: {
     ...TYPOGRAPHY.bodySmall,
-    color: COLORS.TEXT_MUTED,
+    color: colors.TEXT_MUTED,
     marginTop: 2,
   },
   // PHASE 2: MODAL_BACKGROUND (a distinct, elevated color as of this
   // phase's design-system update) instead of the flat screen BACKGROUND,
   // same fix applied to the reader/audio-player modals.
   overlay: {
-    backgroundColor: COLORS.MODAL_BACKGROUND,
+    backgroundColor: colors.MODAL_BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     padding: 0,
     margin: SPACING.LG,
@@ -619,16 +620,16 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...TYPOGRAPHY.h2,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.LG,
   },
   modalInput: {
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
   },
   modalLabel: {
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: '600',
   },
@@ -638,24 +639,24 @@ const styles = StyleSheet.create({
     marginTop: SPACING.LG,
   },
   cancelButton: {
-    borderColor: COLORS.ERROR,
+    borderColor: colors.ERROR,
     borderRadius: BORDER_RADIUS.LG,
     paddingHorizontal: SPACING.LG,
     flex: 0.45,
   },
   cancelButtonText: {
-    color: COLORS.ERROR,
+    color: colors.ERROR,
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.LG,
     paddingHorizontal: SPACING.LG,
     flex: 0.45,
   },
   saveButtonText: {
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: '600',
   },
@@ -665,7 +666,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING.MD,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
+    borderBottomColor: colors.BORDER,
   },
   languageText: {
     ...COMMON_STYLES.text,

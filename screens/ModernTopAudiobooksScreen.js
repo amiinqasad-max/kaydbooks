@@ -13,7 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { getBooks, addToFavorites, removeFromFavorites, isFavorite } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - (SPACING.LG * 2);
@@ -24,6 +25,8 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
+  const { colors, gradients } = useTheme();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     loadTopAudiobooks();
@@ -101,12 +104,12 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={GRADIENTS.HERO}
+          colors={gradients.HERO}
           style={styles.cardGradient}
         >
           {/* Audio Badge */}
           <View style={styles.audioBadge}>
-            <MaterialCommunityIcons name="headphones" size={16} color={COLORS.BUTTON_TEXT} />
+            <MaterialCommunityIcons name="headphones" size={16} color={colors.BUTTON_TEXT} />
             <Text style={styles.audioBadgeText}>Audio</Text>
           </View>
 
@@ -118,7 +121,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
             <MaterialCommunityIcons
               name={isFav ? "heart" : "heart-outline"}
               size={24}
-              color={isFav ? COLORS.ERROR : COLORS.TEXT}
+              color={isFav ? colors.ERROR : colors.TEXT}
             />
           </TouchableOpacity>
 
@@ -141,7 +144,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
                     style={styles.playButton}
                     onPress={() => navigation.navigate('AudioPlayer', { book: item })}
                   >
-                    <MaterialCommunityIcons name="play" size={24} color={COLORS.TEXT} />
+                    <MaterialCommunityIcons name="play" size={24} color={colors.TEXT} />
                   </TouchableOpacity>
                 </LinearGradient>
               </View>
@@ -157,7 +160,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
               </Text>
               
               <View style={styles.categoryContainer}>
-                <MaterialCommunityIcons name="tag" size={14} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="tag" size={14} color={colors.BUTTON} />
                 <Text style={styles.categoryText}>{item.category}</Text>
               </View>
 
@@ -169,7 +172,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
                   fabricated. */}
               {item.audio_duration ? (
                 <View style={styles.audioInfo}>
-                  <MaterialCommunityIcons name="clock-outline" size={14} color={COLORS.TEXT} />
+                  <MaterialCommunityIcons name="clock-outline" size={14} color={colors.TEXT} />
                   <Text style={styles.durationText}>{item.audio_duration}</Text>
                 </View>
               ) : null}
@@ -211,7 +214,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <MaterialCommunityIcons name="headphones" size={64} color={COLORS.BORDER} />
+      <MaterialCommunityIcons name="headphones" size={64} color={colors.BORDER} />
       <Text style={styles.emptyTitle}>No Audiobooks Available</Text>
       <Text style={styles.emptySubtitle}>Check back later for new audio content</Text>
     </View>
@@ -221,7 +224,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Modern Header */}
       <LinearGradient
-        colors={GRADIENTS.ACCENT_BUTTON}
+        colors={gradients.ACCENT_BUTTON}
         style={styles.headerGradient}
       >
         <View style={styles.headerContent}>
@@ -229,7 +232,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.BUTTON_TEXT} />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.BUTTON_TEXT} />
           </TouchableOpacity>
           
           <Text style={styles.headerTitle}>🎧 Top Audiobooks</Text>
@@ -237,7 +240,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
           {/* PHASE 2 fix: had no onPress at all -- dead, non-functional
               icon, same class fixed in ModernExploreScreen.js this phase. */}
           <TouchableOpacity style={styles.searchButton} onPress={() => navigation.navigate('Explore')} accessibilityLabel="Search">
-            <MaterialCommunityIcons name="magnify" size={24} color={COLORS.BUTTON_TEXT} />
+            <MaterialCommunityIcons name="magnify" size={24} color={colors.BUTTON_TEXT} />
           </TouchableOpacity>
         </View>
 
@@ -271,8 +274,8 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.BUTTON]}
-            tintColor={COLORS.BUTTON}
+            colors={[colors.BUTTON]}
+            tintColor={colors.BUTTON}
           />
         }
         ListEmptyComponent={renderEmptyState}
@@ -281,10 +284,10 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   headerGradient: {
     paddingTop: 50,
@@ -308,7 +311,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: FONTS.SIZES.TITLE,
     fontWeight: 'bold',
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     flex: 1,
     textAlign: 'center',
   },
@@ -333,11 +336,11 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: FONTS.SIZES.XLARGE,
     fontWeight: 'bold',
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
   },
   statLabel: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     opacity: 0.8,
     marginTop: SPACING.XS,
   },
@@ -357,7 +360,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.LG,
     overflow: 'hidden',
     elevation: 8,
-    shadowColor: COLORS.BUTTON,
+    shadowColor: colors.BUTTON,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.MD,
     left: SPACING.MD,
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: 15,
     paddingHorizontal: SPACING.SM,
     paddingVertical: SPACING.XS,
@@ -379,7 +382,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   audioBadgeText: {
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     fontSize: FONTS.SIZES.SMALL,
     fontWeight: 'bold',
     marginLeft: SPACING.XS,
@@ -408,7 +411,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 140,
     borderRadius: BORDER_RADIUS.MD,
-    backgroundColor: COLORS.BORDER,
+    backgroundColor: colors.BORDER,
   },
   playOverlay: {
     position: 'absolute',
@@ -440,13 +443,13 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.XS,
     lineHeight: 22,
   },
   bookAuthor: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.8,
     marginBottom: SPACING.SM,
   },
@@ -457,7 +460,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     marginLeft: SPACING.XS,
     fontWeight: '600',
   },
@@ -468,7 +471,7 @@ const styles = StyleSheet.create({
   },
   durationText: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.6,
     marginLeft: SPACING.XS,
   },
@@ -477,7 +480,7 @@ const styles = StyleSheet.create({
     gap: SPACING.SM,
   },
   listenButton: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.MD,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.SM,
@@ -486,14 +489,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listenButtonText: {
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     fontSize: FONTS.SIZES.SMALL,
     fontWeight: 'bold',
   },
   readButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: COLORS.BUTTON,
+    borderColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.MD,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.SM,
@@ -502,7 +505,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   readButtonText: {
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     fontSize: FONTS.SIZES.SMALL,
     fontWeight: 'bold',
   },
@@ -515,13 +518,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: FONTS.SIZES.TITLE,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginTop: SPACING.LG,
     marginBottom: SPACING.SM,
   },
   emptySubtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     textAlign: 'center',
   },

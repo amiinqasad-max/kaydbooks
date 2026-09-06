@@ -12,7 +12,8 @@ import {
   checkIfDownloaded,
 } from '../services/supabase';
 import { downloadAudioBook, downloadBookPdf, deleteDownload as deleteLocalFile } from '../services/downloadManager';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { ScreenContainer, PrimaryButton, SecondaryButton, IconButton, ProgressBar, Badge } from '../components/ui';
 
 // PHASE 2 update -- Book Details (#10). Fixed two "real data only" (#24)
@@ -40,6 +41,8 @@ const BookDetailScreen = ({ route, navigation }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [progress, setProgress] = useState({ percentage: 0, currentPage: 0, totalPages: book.pages || 0 });
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   // PHASE 1.7: moved above the useEffect that calls them -- see
   // components/PremiumGate.js for the full rationale.
@@ -200,7 +203,7 @@ const BookDetailScreen = ({ route, navigation }) => {
         <View style={styles.coverContainer}>
           <Image source={{ uri: book.cover_url }} style={styles.coverImage} />
           <IconButton
-            icon={<MaterialCommunityIcons name={isFav ? 'heart' : 'heart-outline'} size={22} color={isFav ? COLORS.ERROR : COLORS.TEXT} />}
+            icon={<MaterialCommunityIcons name={isFav ? 'heart' : 'heart-outline'} size={22} color={isFav ? colors.ERROR : colors.TEXT} />}
             onPress={toggleFavorite}
             backgroundColor="rgba(0, 0, 0, 0.5)"
             accessibilityLabel={isFav ? 'Remove from favorites' : 'Add to favorites'}
@@ -244,7 +247,7 @@ const BookDetailScreen = ({ route, navigation }) => {
           {book.pdf_url && (
             <PrimaryButton
               label="Read Book"
-              icon={<MaterialCommunityIcons name="book-open-variant" size={18} color={COLORS.BUTTON_TEXT} style={styles.buttonIcon} />}
+              icon={<MaterialCommunityIcons name="book-open-variant" size={18} color={colors.BUTTON_TEXT} style={styles.buttonIcon} />}
               style={styles.actionButton}
               onPress={() => navigation.navigate('PDFViewScreen', {
                 // Prefer the storage path so the reader resolves a fresh,
@@ -263,7 +266,7 @@ const BookDetailScreen = ({ route, navigation }) => {
           {book.pdf_url && (
             <SecondaryButton
               label={isPdfDownloaded ? 'Downloaded (tap to remove)' : isDownloading ? `Downloading... ${downloadProgress}%` : 'Download for Offline'}
-              icon={<MaterialCommunityIcons name={isPdfDownloaded ? 'check-circle' : 'download'} size={16} color={COLORS.ACCENT} style={styles.buttonIcon} />}
+              icon={<MaterialCommunityIcons name={isPdfDownloaded ? 'check-circle' : 'download'} size={16} color={colors.ACCENT} style={styles.buttonIcon} />}
               style={styles.actionButton}
               loading={isDownloading}
               onPress={isPdfDownloaded ? () => deleteDownload('pdf') : handleDownloadPdf}
@@ -273,7 +276,7 @@ const BookDetailScreen = ({ route, navigation }) => {
           {hasAudio ? (
             <PrimaryButton
               label="Listen Audio"
-              icon={<MaterialCommunityIcons name="headphones" size={18} color={COLORS.BUTTON_TEXT} style={styles.buttonIcon} />}
+              icon={<MaterialCommunityIcons name="headphones" size={18} color={colors.BUTTON_TEXT} style={styles.buttonIcon} />}
               style={styles.actionButton}
               onPress={() => navigation.navigate('AudioPlayer', { book })}
             />
@@ -286,7 +289,7 @@ const BookDetailScreen = ({ route, navigation }) => {
           {book.audio_url && (
             <SecondaryButton
               label={isAudioDownloaded ? 'Downloaded (tap to remove)' : isDownloading ? `Downloading... ${downloadProgress}%` : 'Download Audio'}
-              icon={<MaterialCommunityIcons name={isAudioDownloaded ? 'check-circle' : 'download'} size={16} color={COLORS.ACCENT} style={styles.buttonIcon} />}
+              icon={<MaterialCommunityIcons name={isAudioDownloaded ? 'check-circle' : 'download'} size={16} color={colors.ACCENT} style={styles.buttonIcon} />}
               style={styles.actionButton}
               loading={isDownloading}
               onPress={isAudioDownloaded ? () => deleteDownload('audio') : handleDownloadAudio}
@@ -298,7 +301,7 @@ const BookDetailScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   scrollView: {
     flex: 1,
   },
@@ -326,13 +329,13 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.XS,
   },
   author: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.SM_MD,
   },
@@ -343,7 +346,7 @@ const styles = StyleSheet.create({
   },
   addedDate: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.TEXT_MUTED,
+    color: colors.TEXT_MUTED,
   },
   section: {
     paddingHorizontal: SPACING.LG,
@@ -351,12 +354,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.SM,
   },
   description: {
     ...TYPOGRAPHY.reading,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
   },
   progressInfo: {
     flexDirection: 'row',
@@ -366,11 +369,11 @@ const styles = StyleSheet.create({
   },
   progressText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   progressPages: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.TEXT_MUTED,
+    color: colors.TEXT_MUTED,
   },
   progressBar: {
     marginTop: SPACING.XS,
@@ -388,14 +391,14 @@ const styles = StyleSheet.create({
   disabledButton: {
     minHeight: 48,
     borderRadius: BORDER_RADIUS.MD,
-    backgroundColor: COLORS.SURFACE_SECONDARY,
+    backgroundColor: colors.SURFACE_SECONDARY,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.SM_MD,
   },
   disabledButtonText: {
     ...TYPOGRAPHY.button,
-    color: COLORS.TEXT_MUTED,
+    color: colors.TEXT_MUTED,
   },
 });
 

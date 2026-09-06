@@ -14,10 +14,13 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   supabase,
 } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const ProfileScreen = ({ navigation }) => {
   const { user, signOut } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const handleSignOut = () => {
     Alert.alert(
@@ -78,7 +81,7 @@ const ProfileScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.loginPrompt}>
-          <MaterialCommunityIcons name="account-outline" size={80} color={COLORS.BORDER} />
+          <MaterialCommunityIcons name="account-outline" size={80} color={colors.BORDER} />
           <Text style={styles.loginTitle}>Sign In Required</Text>
           <Text style={styles.loginSubtitle}>
             Please sign in to view your profile and reading statistics
@@ -135,8 +138,8 @@ const ProfileScreen = ({ navigation }) => {
             <List.Item
               title="Settings"
               description="Theme, language, notifications, storage"
-              left={(props) => <List.Icon {...props} icon="cog" color={COLORS.BUTTON} />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" color={COLORS.TEXT_SECONDARY} />}
+              left={(props) => <List.Icon {...props} icon="cog" color={colors.BUTTON} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.TEXT_SECONDARY} />}
               onPress={() => navigation.navigate('Settings')}
               style={styles.listItem}
               titleStyle={styles.listItemTitle}
@@ -146,8 +149,8 @@ const ProfileScreen = ({ navigation }) => {
             <List.Item
               title="Premium Subscription"
               description="Upgrade to access all features"
-              left={(props) => <List.Icon {...props} icon="crown" color={COLORS.BUTTON} />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" color={COLORS.TEXT_SECONDARY} />}
+              left={(props) => <List.Icon {...props} icon="crown" color={colors.BUTTON} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.TEXT_SECONDARY} />}
               onPress={() => navigation.navigate('PremiumSubscription', { fromProfile: true })}
               style={styles.listItem}
               titleStyle={styles.listItemTitle}
@@ -158,8 +161,8 @@ const ProfileScreen = ({ navigation }) => {
             <List.Item
               title="Change Password"
               description="Update your account password"
-              left={(props) => <List.Icon {...props} icon="lock-reset" color={COLORS.WARNING} />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" color={COLORS.TEXT_SECONDARY} />}
+              left={(props) => <List.Icon {...props} icon="lock-reset" color={colors.WARNING} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.TEXT_SECONDARY} />}
               onPress={handleChangePassword}
               style={styles.listItem}
               titleStyle={styles.listItemTitle}
@@ -169,8 +172,8 @@ const ProfileScreen = ({ navigation }) => {
             <List.Item
               title="Privacy Policy & Terms"
               description="Review our privacy policy and terms"
-              left={(props) => <List.Icon {...props} icon="shield-check" color={COLORS.INFO} />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" color={COLORS.TEXT_SECONDARY} />}
+              left={(props) => <List.Icon {...props} icon="shield-check" color={colors.INFO} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.TEXT_SECONDARY} />}
               onPress={() => navigation.navigate('PrivacyPolicy')}
               style={styles.listItem}
               titleStyle={styles.listItemTitle}
@@ -180,8 +183,8 @@ const ProfileScreen = ({ navigation }) => {
             <List.Item
               title="Delete Account"
               description="Permanently delete your account and data"
-              left={(props) => <List.Icon {...props} icon="delete-forever" color={COLORS.ERROR} />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" color={COLORS.TEXT_SECONDARY} />}
+              left={(props) => <List.Icon {...props} icon="delete-forever" color={colors.ERROR} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.TEXT_SECONDARY} />}
               onPress={() => navigation.navigate('DeleteAccount')}
               style={[styles.listItem, styles.dangerItem]}
               titleStyle={styles.listItemTitle}
@@ -197,7 +200,7 @@ const ProfileScreen = ({ navigation }) => {
             style={styles.signOutButton}
             onPress={handleSignOut}
             icon="logout"
-            textColor={COLORS.BUTTON}
+            textColor={colors.BUTTON}
           >
             Sign Out
           </Button>
@@ -207,10 +210,10 @@ const ProfileScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   scrollView: {
     flex: 1,
@@ -224,23 +227,23 @@ const styles = StyleSheet.create({
   loginTitle: {
     fontSize: FONTS.SIZES.TITLE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginTop: SPACING.LG,
     marginBottom: SPACING.SM,
   },
   loginSubtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.XL,
     lineHeight: 22,
   },
   signInBtn: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     paddingHorizontal: SPACING.XL,
   },
   profileCard: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     margin: SPACING.MD,
     elevation: 2,
   },
@@ -249,7 +252,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
   },
   profileInfo: {
     flex: 1,
@@ -258,40 +261,40 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.XS,
   },
   userEmail: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     marginBottom: SPACING.XS,
   },
   memberSince: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
   },
   settingsCard: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     margin: SPACING.MD,
     elevation: 2,
   },
   settingsTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontFamily: FONTS.BOLD,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.MD,
   },
   listItem: {
     paddingVertical: SPACING.SM,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
+    borderBottomColor: colors.BORDER,
   },
   listItemTitle: {
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     fontFamily: FONTS.BOLD,
   },
   listItemDescription: {
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     fontFamily: FONTS.REGULAR,
   },
   dangerItem: {
@@ -302,7 +305,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.XL,
   },
   signOutButton: {
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
     paddingVertical: SPACING.SM,
   },
 });

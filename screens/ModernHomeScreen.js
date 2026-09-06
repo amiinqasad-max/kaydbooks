@@ -17,7 +17,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getBooks, getContinueReadingBooks, getContinueListeningBooks, getFavorites } from '../services/supabase';
 import { sanitizeBookArray, sanitizeNestedBookRecord, sanitizeBookRecord } from '../utils/bookSanitizer';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { SectionHeader, HorizontalBookList } from '../components/ui';
 
 const { width } = Dimensions.get('window');
@@ -34,6 +35,8 @@ const ModernHomeScreen = ({ navigation }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { colors, gradients } = useTheme();
+  const styles = createStyles(colors);
 
   const getCategoryIcon = (category) => {
     const iconMap = {
@@ -139,7 +142,7 @@ const ModernHomeScreen = ({ navigation }) => {
           resizeMode="cover"
         />
         <View style={styles.playOverlay}>
-          <MaterialCommunityIcons name="play-circle" size={32} color={COLORS.BUTTON} />
+          <MaterialCommunityIcons name="play-circle" size={32} color={colors.BUTTON} />
         </View>
       </View>
       <Text style={styles.audiobookTitle} numberOfLines={2}>
@@ -228,11 +231,11 @@ const ModernHomeScreen = ({ navigation }) => {
       activeOpacity={0.8}
     >
       <LinearGradient
-        colors={GRADIENTS.HERO_STRONG}
+        colors={gradients.HERO_STRONG}
         style={styles.categoryGradient}
       >
         <View style={styles.categoryIcon}>
-          <MaterialCommunityIcons name={item.icon} size={28} color={COLORS.BUTTON} />
+          <MaterialCommunityIcons name={item.icon} size={28} color={colors.BUTTON} />
         </View>
         <Text style={styles.categoryName} numberOfLines={1}>
           {item.name}
@@ -253,14 +256,14 @@ const ModernHomeScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.BUTTON]}
-            tintColor={COLORS.BUTTON}
+            colors={[colors.BUTTON]}
+            tintColor={colors.BUTTON}
           />
         }
       >
         {/* Header Section */}
         <LinearGradient
-          colors={GRADIENTS.ACCENT_BUTTON}
+          colors={gradients.ACCENT_BUTTON}
           style={styles.headerGradient}
         >
           <View style={styles.headerContent}>
@@ -273,7 +276,7 @@ const ModernHomeScreen = ({ navigation }) => {
               style={styles.profileButton}
               onPress={() => navigation.navigate('Profile')}
             >
-              <MaterialCommunityIcons name="account-circle" size={32} color={COLORS.BUTTON_TEXT} />
+              <MaterialCommunityIcons name="account-circle" size={32} color={colors.BUTTON_TEXT} />
             </TouchableOpacity>
           </View>
 
@@ -282,7 +285,7 @@ const ModernHomeScreen = ({ navigation }) => {
             style={styles.searchContainer}
             onPress={() => navigation.navigate('Explore')}
           >
-            <MaterialCommunityIcons name="magnify" size={20} color={COLORS.TEXT} />
+            <MaterialCommunityIcons name="magnify" size={20} color={colors.TEXT} />
             <Text style={styles.searchPlaceholder}>{t('home.searchPlaceholder')}</Text>
           </TouchableOpacity>
         </LinearGradient>
@@ -394,10 +397,10 @@ const ModernHomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('Explore')}
             >
               <LinearGradient
-                colors={GRADIENTS.HERO_STRONG}
+                colors={gradients.HERO_STRONG}
                 style={styles.actionGradient}
               >
-                <MaterialCommunityIcons name="compass" size={32} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="compass" size={32} color={colors.BUTTON} />
                 <Text style={styles.actionTitle}>Explore</Text>
                 <Text style={styles.actionSubtitle}>Discover new books</Text>
               </LinearGradient>
@@ -408,10 +411,10 @@ const ModernHomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('Library')}
             >
               <LinearGradient
-                colors={GRADIENTS.HERO_STRONG}
+                colors={gradients.HERO_STRONG}
                 style={styles.actionGradient}
               >
-                <MaterialCommunityIcons name="library" size={32} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="library" size={32} color={colors.BUTTON} />
                 <Text style={styles.actionTitle}>Library</Text>
                 <Text style={styles.actionSubtitle}>Your collection</Text>
               </LinearGradient>
@@ -430,10 +433,10 @@ const ModernHomeScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('AdminUpload')}
               >
                 <LinearGradient
-                  colors={GRADIENTS.HERO_STRONG}
+                  colors={gradients.HERO_STRONG}
                   style={styles.actionGradient}
                 >
-                  <MaterialCommunityIcons name="upload" size={32} color={COLORS.BUTTON} />
+                  <MaterialCommunityIcons name="upload" size={32} color={colors.BUTTON} />
                   <Text style={styles.actionTitle}>Upload Book</Text>
                   <Text style={styles.actionSubtitle}>Add new content</Text>
                 </LinearGradient>
@@ -444,10 +447,10 @@ const ModernHomeScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('AdminManage')}
               >
                 <LinearGradient
-                  colors={GRADIENTS.HERO_STRONG}
+                  colors={gradients.HERO_STRONG}
                   style={styles.actionGradient}
                 >
-                  <MaterialCommunityIcons name="cog" size={32} color={COLORS.BUTTON} />
+                  <MaterialCommunityIcons name="cog" size={32} color={colors.BUTTON} />
                   <Text style={styles.actionTitle}>Manage Books</Text>
                   <Text style={styles.actionSubtitle}>Edit & organize</Text>
                 </LinearGradient>
@@ -461,10 +464,10 @@ const ModernHomeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   scrollView: {
     flex: 1,
@@ -485,13 +488,13 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     opacity: 0.8,
   },
   userName: {
     fontSize: FONTS.SIZES.TITLE,
     fontWeight: 'bold',
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     marginTop: SPACING.XS,
   },
   profileButton: {
@@ -500,7 +503,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.MD,
@@ -512,7 +515,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: SPACING.SM,
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.8,
   },
   section: {
@@ -521,7 +524,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONTS.SIZES.XLARGE,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     paddingHorizontal: SPACING.LG,
     marginBottom: SPACING.MD,
   },
@@ -556,26 +559,26 @@ const styles = StyleSheet.create({
   audiobookTitle: {
     fontSize: FONTS.SIZES.SMALL,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.XS,
     lineHeight: 16,
   },
   audiobookAuthor: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     textAlign: 'center',
   },
   continueCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     padding: SPACING.MD,
     marginRight: SPACING.MD,
     width: 280,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   continueCover: {
     width: 60,
@@ -590,24 +593,24 @@ const styles = StyleSheet.create({
   continueTitle: {
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.XS,
   },
   continueProgress: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     fontWeight: '600',
     marginBottom: SPACING.SM,
   },
   progressBarContainer: {
     height: 4,
-    backgroundColor: COLORS.BORDER,
+    backgroundColor: colors.BORDER,
     borderRadius: 2,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: 2,
   },
   categoryCard: {
@@ -617,7 +620,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.LG,
     overflow: 'hidden',
     elevation: 4,
-    shadowColor: COLORS.BUTTON,
+    shadowColor: colors.BUTTON,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -632,7 +635,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.ACCENT_SOFT,
+    backgroundColor: colors.ACCENT_SOFT,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.SM,
@@ -640,13 +643,13 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: FONTS.SIZES.SMALL,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.XS,
   },
   categoryCount: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     textAlign: 'center',
   },
@@ -660,7 +663,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.LG,
     overflow: 'hidden',
     elevation: 4,
-    shadowColor: COLORS.BUTTON,
+    shadowColor: colors.BUTTON,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -674,13 +677,13 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginTop: SPACING.SM,
     marginBottom: SPACING.XS,
   },
   actionSubtitle: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     textAlign: 'center',
   },

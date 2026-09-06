@@ -13,7 +13,8 @@ import {
   removeFromFavorites,
   removeDownloadRecord,
 } from '../services/supabase';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 // PHASE 2 rewrite (#14: Library, ownership + progress).
 //
@@ -62,6 +63,8 @@ const EnhancedLibraryScreen = ({ navigation }) => {
   const [continueListening, setContinueListening] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     if (user) {
@@ -154,7 +157,7 @@ const EnhancedLibraryScreen = ({ navigation }) => {
             accessibilityRole="button"
             accessibilityLabel={`Remove ${book.title} from favorites`}
           >
-            <MaterialCommunityIcons name="heart-off" size={18} color={COLORS.ERROR} />
+            <MaterialCommunityIcons name="heart-off" size={18} color={colors.ERROR} />
             <Text style={styles.removeBtnText}>Remove</Text>
           </TouchableOpacity>
         )}
@@ -165,7 +168,7 @@ const EnhancedLibraryScreen = ({ navigation }) => {
             accessibilityRole="button"
             accessibilityLabel={`Delete downloaded copy of ${book.title}`}
           >
-            <MaterialCommunityIcons name="delete-outline" size={18} color={COLORS.ERROR} />
+            <MaterialCommunityIcons name="delete-outline" size={18} color={colors.ERROR} />
             <Text style={styles.removeBtnText}>Delete download</Text>
           </TouchableOpacity>
         )}
@@ -193,7 +196,7 @@ const EnhancedLibraryScreen = ({ navigation }) => {
       </Appbar.Header>
 
       {/* PHASE 2: fourth tab (Continue Listening) added; each tab uses the
-          real accent-soft token instead of the old COLORS.BUTTON_LIGHT
+          real accent-soft token instead of the old colors.BUTTON_LIGHT
           literal, and the TYPOGRAPHY scale instead of the nonexistent
           FONTS.MEDIUM. */}
       <FlatList
@@ -211,7 +214,7 @@ const EnhancedLibraryScreen = ({ navigation }) => {
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
             >
-              <MaterialCommunityIcons name={tab.icon} size={18} color={isActive ? COLORS.ACCENT : COLORS.TEXT_SECONDARY} />
+              <MaterialCommunityIcons name={tab.icon} size={18} color={isActive ? colors.ACCENT : colors.TEXT_SECONDARY} />
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>{tab.label}</Text>
             </TouchableOpacity>
           );
@@ -226,7 +229,7 @@ const EnhancedLibraryScreen = ({ navigation }) => {
           renderItem={renderBookItem}
           keyExtractor={(item) => (item.books?.id || item.id).toString()}
           contentContainerStyle={styles.listContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.ACCENT} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ACCENT} />}
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
         />
@@ -235,24 +238,24 @@ const EnhancedLibraryScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   appbar: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
   },
   appbarTitle: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
   },
   tabContainer: {
     paddingHorizontal: SPACING.SM_MD,
     paddingVertical: SPACING.SM,
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
+    borderBottomColor: colors.BORDER,
   },
   tab: {
     flexDirection: 'row',
@@ -264,14 +267,14 @@ const styles = StyleSheet.create({
     gap: SPACING.XS,
   },
   activeTab: {
-    backgroundColor: COLORS.ACCENT_SOFT,
+    backgroundColor: colors.ACCENT_SOFT,
   },
   tabText: {
     ...TYPOGRAPHY.bodySmall,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
   },
   activeTabText: {
-    color: COLORS.ACCENT,
+    color: colors.ACCENT,
     fontWeight: '700',
   },
   listContainer: {
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
   },
   removeBtnText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.ERROR,
+    color: colors.ERROR,
   },
 });
 

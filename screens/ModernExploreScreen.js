@@ -15,7 +15,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getBooks, addToFavorites, removeFromFavorites, isFavorite } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { EmptyState, SearchInput, Chip } from '../components/ui';
 
 const { width } = Dimensions.get('window');
@@ -31,6 +32,8 @@ const ModernExploreScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
+  const { colors, gradients } = useTheme();
+  const styles = createStyles(colors);
 
   // PHASE 2 (#24, real data only): was a hardcoded static category list
   // that could drift from what's actually in the `books` table (missing
@@ -137,7 +140,7 @@ const ModernExploreScreen = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={GRADIENTS.HERO}
+          colors={gradients.HERO}
           style={styles.cardGradient}
         >
           {/* Book Cover */}
@@ -156,7 +159,7 @@ const ModernExploreScreen = ({ navigation }) => {
               <MaterialCommunityIcons
                 name={isFav ? "heart" : "heart-outline"}
                 size={18}
-                color={isFav ? COLORS.ERROR : COLORS.TEXT}
+                color={isFav ? colors.ERROR : colors.TEXT}
               />
             </TouchableOpacity>
           </View>
@@ -185,7 +188,7 @@ const ModernExploreScreen = ({ navigation }) => {
                   book: item, bookId: item?.id, pdfPath: item?.pdf_path || null, pdfUrl: item?.pdf_url,
                 })}
               >
-                <MaterialCommunityIcons name="book-open" size={16} color={COLORS.BUTTON_TEXT} />
+                <MaterialCommunityIcons name="book-open" size={16} color={colors.BUTTON_TEXT} />
                 <Text style={styles.actionBtnText}>Read</Text>
               </TouchableOpacity>
               
@@ -194,7 +197,7 @@ const ModernExploreScreen = ({ navigation }) => {
                   style={styles.listenBtn}
                   onPress={() => navigation.navigate('AudioPlayer', { book: item })}
                 >
-                  <MaterialCommunityIcons name="headphones" size={16} color={COLORS.BUTTON} />
+                  <MaterialCommunityIcons name="headphones" size={16} color={colors.BUTTON} />
                 </TouchableOpacity>
               )}
             </View>
@@ -219,7 +222,7 @@ const ModernExploreScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Modern Header with Search */}
       <LinearGradient
-        colors={GRADIENTS.ACCENT_BUTTON}
+        colors={gradients.ACCENT_BUTTON}
         style={styles.headerGradient}
       >
         <View style={styles.headerContent}>
@@ -272,8 +275,8 @@ const ModernExploreScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.BUTTON]}
-            tintColor={COLORS.BUTTON}
+            colors={[colors.BUTTON]}
+            tintColor={colors.BUTTON}
           />
         }
         ListEmptyComponent={renderEmptyState}
@@ -282,10 +285,10 @@ const ModernExploreScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   headerGradient: {
     paddingTop: 50,
@@ -297,15 +300,15 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: FONTS.SIZES.TITLE,
     fontWeight: 'bold',
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     textAlign: 'center',
     marginBottom: SPACING.LG,
   },
   searchInputWrapper: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   categoriesSection: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
     paddingVertical: SPACING.MD,
   },
   categoriesContainer: {
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.MD,
   },
   resultsText: {
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     opacity: 0.8,
   },
@@ -336,7 +339,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.LG,
     overflow: 'hidden',
     elevation: 4,
-    shadowColor: COLORS.BUTTON,
+    shadowColor: colors.BUTTON,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -354,7 +357,7 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH - 40,
     height: 120,
     borderRadius: BORDER_RADIUS.SM,
-    backgroundColor: COLORS.BORDER,
+    backgroundColor: colors.BORDER,
   },
   favoriteBtn: {
     position: 'absolute',
@@ -374,18 +377,18 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.XS,
     lineHeight: 18,
   },
   bookAuthor: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     marginBottom: SPACING.SM,
   },
   categoryBadge: {
-    backgroundColor: COLORS.ACCENT_SOFT,
+    backgroundColor: colors.ACCENT_SOFT,
     borderRadius: BORDER_RADIUS.SM,
     paddingHorizontal: SPACING.SM,
     paddingVertical: SPACING.XS,
@@ -393,7 +396,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SM,
   },
   categoryBadgeText: {
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     fontSize: FONTS.SIZES.SMALL,
     fontWeight: '600',
   },
@@ -403,7 +406,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   readBtn: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.SM,
     paddingHorizontal: SPACING.SM,
     paddingVertical: SPACING.XS,
@@ -413,7 +416,7 @@ const styles = StyleSheet.create({
     marginRight: SPACING.XS,
   },
   actionBtnText: {
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     fontSize: FONTS.SIZES.SMALL,
     fontWeight: 'bold',
     marginLeft: SPACING.XS,
@@ -421,7 +424,7 @@ const styles = StyleSheet.create({
   listenBtn: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: COLORS.BUTTON,
+    borderColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.SM,
     padding: SPACING.XS,
     alignItems: 'center',
@@ -436,13 +439,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: FONTS.SIZES.TITLE,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginTop: SPACING.LG,
     marginBottom: SPACING.SM,
   },
   emptySubtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     textAlign: 'center',
   },
