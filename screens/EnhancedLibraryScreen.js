@@ -13,6 +13,7 @@ import { Button, Appbar, ProgressBar } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { EmptyState } from '../components/ui';
 import {
   getFavorites,
   getContinueReadingBooks,
@@ -171,23 +172,17 @@ const EnhancedLibraryScreen = ({ navigation }) => {
 
     const message = emptyMessages[activeTab];
 
+    // PHASE 2: was a hand-rolled empty state duplicated (with slightly
+    // different styles each time) across this screen, ModernExploreScreen,
+    // and DownloadsLibraryScreen -- now the one shared component.
     return (
-      <View style={styles.emptyState}>
-        <MaterialCommunityIcons 
-          name={message.icon} 
-          size={64} 
-          color={COLORS.BORDER} 
-        />
-        <Text style={styles.emptyTitle}>{message.title}</Text>
-        <Text style={styles.emptySubtitle}>{message.subtitle}</Text>
-        <Button
-          mode="contained"
-          style={styles.browseBtn}
-          onPress={() => navigation.navigate('Home')}
-        >
-          Browse Books
-        </Button>
-      </View>
+      <EmptyState
+        icon={message.icon}
+        title={message.title}
+        message={message.subtitle}
+        actionLabel="Browse Books"
+        onActionPress={() => navigation.navigate('Home')}
+      />
     );
   };
 

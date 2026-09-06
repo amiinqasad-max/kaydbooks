@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getBooks, getContinueReadingBooks, getContinueListeningBooks, getFavorites } from '../services/supabase';
 import { sanitizeBookArray, sanitizeNestedBookRecord, sanitizeBookRecord } from '../utils/bookSanitizer';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
 const BOOK_CARD_WIDTH = 120;
@@ -136,7 +136,7 @@ const ModernHomeScreen = ({ navigation }) => {
       activeOpacity={0.8}
     >
       <LinearGradient
-        colors={['rgba(250, 181, 0, 0.1)', 'rgba(2, 25, 69, 0.9)']}
+        colors={GRADIENTS.HERO}
         style={styles.topReadGradient}
       >
         <Image
@@ -258,7 +258,7 @@ const ModernHomeScreen = ({ navigation }) => {
       activeOpacity={0.8}
     >
       <LinearGradient
-        colors={['rgba(250, 181, 0, 0.2)', 'rgba(2, 25, 69, 0.9)']}
+        colors={GRADIENTS.HERO_STRONG}
         style={styles.categoryGradient}
       >
         <View style={styles.categoryIcon}>
@@ -290,7 +290,7 @@ const ModernHomeScreen = ({ navigation }) => {
       >
         {/* Header Section */}
         <LinearGradient
-          colors={[COLORS.BUTTON, 'rgba(250, 181, 0, 0.8)']}
+          colors={GRADIENTS.ACCENT_BUTTON}
           style={styles.headerGradient}
         >
           <View style={styles.headerContent}>
@@ -428,7 +428,7 @@ const ModernHomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('Explore')}
             >
               <LinearGradient
-                colors={['rgba(250, 181, 0, 0.2)', 'rgba(2, 25, 69, 0.9)']}
+                colors={GRADIENTS.HERO_STRONG}
                 style={styles.actionGradient}
               >
                 <MaterialCommunityIcons name="compass" size={32} color={COLORS.BUTTON} />
@@ -442,7 +442,7 @@ const ModernHomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('Library')}
             >
               <LinearGradient
-                colors={['rgba(250, 181, 0, 0.2)', 'rgba(2, 25, 69, 0.9)']}
+                colors={GRADIENTS.HERO_STRONG}
                 style={styles.actionGradient}
               >
                 <MaterialCommunityIcons name="library" size={32} color={COLORS.BUTTON} />
@@ -464,7 +464,7 @@ const ModernHomeScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('AdminUpload')}
               >
                 <LinearGradient
-                  colors={['rgba(250, 181, 0, 0.3)', 'rgba(2, 25, 69, 0.9)']}
+                  colors={GRADIENTS.HERO_STRONG}
                   style={styles.actionGradient}
                 >
                   <MaterialCommunityIcons name="upload" size={32} color={COLORS.BUTTON} />
@@ -478,7 +478,7 @@ const ModernHomeScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('AdminManage')}
               >
                 <LinearGradient
-                  colors={['rgba(250, 181, 0, 0.3)', 'rgba(2, 25, 69, 0.9)']}
+                  colors={GRADIENTS.HERO_STRONG}
                   style={styles.actionGradient}
                 >
                   <MaterialCommunityIcons name="cog" size={32} color={COLORS.BUTTON} />
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(250, 181, 0, 0.2)',
+    backgroundColor: COLORS.ACCENT_SOFT,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.SM,

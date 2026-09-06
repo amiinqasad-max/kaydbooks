@@ -16,7 +16,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getBooks, addToFavorites, removeFromFavorites, isFavorite } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
+import { EmptyState } from '../components/ui';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - (SPACING.LG * 3)) / 2;
@@ -142,7 +143,7 @@ const ModernExploreScreen = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={['rgba(250, 181, 0, 0.05)', 'rgba(2, 25, 69, 0.95)']}
+          colors={GRADIENTS.HERO}
           style={styles.cardGradient}
         >
           {/* Book Cover */}
@@ -209,21 +210,22 @@ const ModernExploreScreen = ({ navigation }) => {
     );
   };
 
+  // PHASE 2: shared component (Phase 2 #9 also asks for a distinct
+  // "no-result state" for search specifically -- reflected here via the
+  // message text, which differs depending on whether a search is active).
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <MaterialCommunityIcons name="book-search-outline" size={64} color={COLORS.BORDER} />
-      <Text style={styles.emptyTitle}>No Books Found</Text>
-      <Text style={styles.emptySubtitle}>
-        {searchQuery ? `No results for "${searchQuery}"` : 'Try a different category'}
-      </Text>
-    </View>
+    <EmptyState
+      icon="book-search-outline"
+      title={searchQuery ? 'No matching books' : 'No Books Found'}
+      message={searchQuery ? `We couldn't find a book matching "${searchQuery}".` : 'Try a different category.'}
+    />
   );
 
   return (
     <View style={styles.container}>
       {/* Modern Header with Search */}
       <LinearGradient
-        colors={[COLORS.BUTTON, 'rgba(250, 181, 0, 0.8)']}
+        colors={GRADIENTS.ACCENT_BUTTON}
         style={styles.headerGradient}
       >
         <View style={styles.headerContent}>
@@ -433,7 +435,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SM,
   },
   categoryBadge: {
-    backgroundColor: 'rgba(250, 181, 0, 0.2)',
+    backgroundColor: COLORS.ACCENT_SOFT,
     borderRadius: BORDER_RADIUS.SM,
     paddingHorizontal: SPACING.SM,
     paddingVertical: SPACING.XS,

@@ -15,6 +15,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserDownloads, removeFromUserDownloads } from '../services/supabase';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { EmptyState } from '../components/ui';
 
 const DownloadsLibraryScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -207,20 +208,17 @@ const DownloadsLibraryScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  // PHASE 2: shared component, was a hand-rolled duplicate of the same
+  // empty state pattern also found in EnhancedLibraryScreen.js and
+  // ModernExploreScreen.js.
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <MaterialCommunityIcons name="download-off" size={80} color={COLORS.BORDER} />
-      <Text style={styles.emptyTitle}>No Downloads Yet</Text>
-      <Text style={styles.emptySubtitle}>
-        Download books and audiobooks to access them offline
-      </Text>
-      <TouchableOpacity
-        style={styles.exploreButton}
-        onPress={() => navigation.navigate('Explore')}
-      >
-        <Text style={styles.exploreButtonText}>Explore Books</Text>
-      </TouchableOpacity>
-    </View>
+    <EmptyState
+      icon="download-off"
+      title="No Downloads Yet"
+      message="Download books and audiobooks to access them offline"
+      actionLabel="Explore Books"
+      onActionPress={() => navigation.navigate('Explore')}
+    />
   );
 
   if (!user) {
