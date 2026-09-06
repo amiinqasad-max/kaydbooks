@@ -6,7 +6,6 @@ import {
   Alert,
   Switch,
   TouchableOpacity,
-  Linking,
 } from 'react-native';
 import { Text } from 'react-native';
 import { Button, TextInput, Modal, List } from 'react-native-paper';
@@ -14,7 +13,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { COLORS, FONTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
 
 const SettingsScreen = ({ navigation }) => {
   const { user, signOut } = useAuth();
@@ -47,11 +46,13 @@ const SettingsScreen = ({ navigation }) => {
   // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
   // (not hoisted) -- see components/PremiumGate.js for the full rationale.
   //
-  // ALSO NOTE (found while making this edit, not fixed here): this reads/
-  // writes `profiles.theme_mode` / `.language` / `.notifications_enabled`,
-  // columns not present in database/schema.sql or migration 003/004 --
-  // this insert is likely failing (or silently adding unknown-column
-  // errors) against the real schema. Needs its own follow-up.
+  // PHASE 1.8 NOTE (resolved): this reads/writes `profiles.theme_mode` /
+  // `.language` / `.notifications_enabled`. As of Phase 1.7 those columns
+  // did not exist in database/schema.sql or migrations 003/004, so this
+  // insert was likely failing against the real schema. Fixed in
+  // supabase/migrations/005_schema_reconciliation.sql, which adds all
+  // three as owner-only preference columns -- this code itself needed no
+  // change, only the schema underneath it.
   async function loadUserProfile() {
     if (!user) return;
 
@@ -208,31 +209,6 @@ const SettingsScreen = ({ navigation }) => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone and will remove all your data.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Note: In production, you'd need an admin endpoint for this
-              // For now, we'll just sign out and let the user know
-              await signOut();
-              Alert.alert('Account Deletion', 'Please contact support to complete account deletion.');
-            } catch (error) {
-              console.error('Error deleting account:', error);
-              Alert.alert('Error', 'Failed to delete account');
-            }
-          }
-        }
-      ]
-    );
-  };
-
   const handleClearDownloads = async () => {
     Alert.alert(
       'Clear Downloads',
@@ -268,10 +244,6 @@ const SettingsScreen = ({ navigation }) => {
         }
       ]
     );
-  };
-
-  const handlePrivacyPolicy = () => {
-    Linking.openURL('https://bookreaderapp.com/privacy');
   };
 
   const handleLogout = () => {
@@ -399,7 +371,14 @@ const SettingsScreen = ({ navigation }) => {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleDeleteAccount}>
+          {/* PHASE 2 fix (#24 real data, #30 duplicate cleanup): this used
+              to have its own local handleDeleteAccount that just signed
+              the user out and told them to "contact support to complete
+              account deletion" -- it never actually deleted anything,
+              while a real, working DeleteAccountScreen.js already exists
+              and is reachable from ProfileScreen. Now navigates there
+              instead of a fake local flow. */}
+          <TouchableOpacity onPress={() => navigation.navigate('DeleteAccount')}>
             <List.Item
               style={styles.listItem}
               title="Delete Account"
@@ -428,7 +407,14 @@ const SettingsScreen = ({ navigation }) => {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handlePrivacyPolicy}>
+          {/* PHASE 2 fix (#24 real data): this used to
+              Linking.openURL('https://bookreaderapp.com/privacy') -- a
+              placeholder domain that is not KaydBooks (leftover from a
+              template), sending users to a page that isn't this app's
+              actual policy. screens/PrivacyPolicyScreen.js is a real,
+              already-built in-app screen (also linked from
+              ProfileScreen.js) -- now used here too instead. */}
+          <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
             <List.Item
               style={styles.listItem}
               title="Privacy Policy"
@@ -579,9 +565,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.LG,
   },
   sectionTitle: {
-    fontSize: FONTS.SIZES.XLARGE,
-    fontWeight: 'bold',
-    color: COLORS.BUTTON,
+    ...TYPOGRAPHY.h3,
+    color: COLORS.ACCENT,
     marginHorizontal: SPACING.LG,
     marginBottom: SPACING.SM,
     marginTop: SPACING.MD,
@@ -597,18 +582,20 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.SM,
   },
   listTitle: {
-    ...COMMON_STYLES.text,
-    fontSize: FONTS.SIZES.LARGE,
+    ...TYPOGRAPHY.body,
+    color: COLORS.TEXT,
     fontWeight: '600',
   },
   listSubtitle: {
-    ...COMMON_STYLES.text,
-    fontSize: FONTS.SIZES.MEDIUM,
-    opacity: 0.7,
+    ...TYPOGRAPHY.bodySmall,
+    color: COLORS.TEXT_MUTED,
     marginTop: 2,
   },
+  // PHASE 2: MODAL_BACKGROUND (a distinct, elevated color as of this
+  // phase's design-system update) instead of the flat screen BACKGROUND,
+  // same fix applied to the reader/audio-player modals.
   overlay: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.MODAL_BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     padding: 0,
     margin: SPACING.LG,
@@ -619,8 +606,8 @@ const styles = StyleSheet.create({
     padding: SPACING.LG,
   },
   modalTitle: {
-    ...COMMON_STYLES.title,
-    fontSize: FONTS.SIZES.TITLE,
+    ...TYPOGRAPHY.h2,
+    color: COLORS.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.LG,
   },

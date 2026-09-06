@@ -125,7 +125,24 @@ const ProfileScreen = ({ navigation }) => {
         <Card style={styles.settingsCard}>
           <Card.Content>
             <Text style={styles.settingsTitle}>⚙️ Settings & Account</Text>
-            
+
+            {/* PHASE 2 fix (#16, #2 dead UI): SettingsScreen.js (theme,
+                language, notifications, clear downloads) was a fully
+                registered route (App.js) that literally nothing in the
+                app ever navigated to -- confirmed via a full-repo grep
+                for navigate('Settings'). It was completely unreachable.
+                This is the entry point. */}
+            <List.Item
+              title="Settings"
+              description="Theme, language, notifications, storage"
+              left={(props) => <List.Icon {...props} icon="cog" color={COLORS.BUTTON} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={COLORS.TEXT_SECONDARY} />}
+              onPress={() => navigation.navigate('Settings')}
+              style={styles.listItem}
+              titleStyle={styles.listItemTitle}
+              descriptionStyle={styles.listItemDescription}
+            />
+
             <List.Item
               title="Premium Subscription"
               description="Upgrade to access all features"
