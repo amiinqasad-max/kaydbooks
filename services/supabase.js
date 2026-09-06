@@ -1158,3 +1158,52 @@ export const verifyLocalPaymentWithServer = async ({ transactionCode, plan }) =>
   if (data?.error) throw new Error(data.error);
   return data;
 };
+
+// ========================================
+// PHASE 2: ACCOUNT DELETION
+// ========================================
+//
+// Real, previously-undiscovered finding: DeleteAccountScreen.js's final
+// "Delete Account" action never deleted anything at all -- it was a
+// `setTimeout` literally commented "Simulate account deletion process",
+// then just signed the user out. A user could walk through the entire
+// "this is permanent and irreversible" consent flow, type
+// "DELETE MY ACCOUNT", confirm on a "this cannot be undone" modal, and
+// their account/data would remain completely intact in the database.
+//
+// This function deletes everything the client is actually able to
+// delete under RLS (every owner-only table created across migrations
+// 001-004: favorites, downloads, reading_progress, audio_progress,
+// book_bookmarks, book_notes, audio_bookmarks) -- real deletions, not a
+// delay. It deliberately does NOT claim to delete the `auth.users` row
+// itself or the `profiles` row: removing an auth user requires the
+// Supabase Admin API (service_role), which this client-side app has no
+// access to (by design -- see admin_web/'s Phase 0 rewrite for why a
+// service_role key must never live in client code). A real "delete my
+// login entirely" flow needs a server-side Edge Function (the same
+// pattern as verify-receipt/verify-local-payment) that has not been
+// built -- tracked as a required follow-up, not silently faked here.
+export const deleteAllUserData = async (userId) => {
+  const tables = [
+    'favorites',
+    'downloads',
+    'reading_progress',
+    'audio_progress',
+    'book_bookmarks',
+    'book_notes',
+    'audio_bookmarks',
+  ];
+
+  const results = await Promise.allSettled(
+    tables.map((table) => supabase.from(table).delete().eq('user_id', userId))
+  );
+
+  const failures = results
+    .map((result, i) => ({ table: tables[i], result }))
+    .filter(({ result }) => result.status === 'rejected' || result.value?.error);
+
+  if (failures.length > 0) {
+    console.error('deleteAllUserData: some tables failed to clear:', failures.map((f) => f.table));
+    throw new Error(`Failed to delete data from: ${failures.map((f) => f.table).join(', ')}`);
+  }
+};

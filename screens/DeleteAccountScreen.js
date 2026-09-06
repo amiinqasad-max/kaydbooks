@@ -8,13 +8,13 @@ import {
   TextInput,
   Modal,
   Animated,
-  useColorScheme,
   ScrollView,
   Alert,
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
+import { deleteAllUserData } from '../services/supabase';
 
 const DeleteAccountScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -28,16 +28,25 @@ const DeleteAccountScreen = ({ navigation }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
   
-  const colorScheme = useColorScheme();
-  const { signOut } = useAuth();
-  
-  // Theme colors based on color scheme
+  const { user, signOut } = useAuth();
+
+  // PHASE 2 fix: this used to branch on the device's OS-level
+  // useColorScheme() and switch to a white/light palette when the
+  // system was in light mode -- but this is the ONLY screen in the
+  // entire app that did that. Every other screen is unconditionally
+  // dark (constants/theme.js has no light-mode token set at all, per
+  // this phase's design-system audit). The result was a real, jarring
+  // bug: a user with their OS set to light mode would see this one
+  // screen flip to a white background mid-navigation while every other
+  // screen around it stayed dark blue. Kept the `theme.*` object (all
+  // its usages below are unchanged) but now always resolves to the
+  // app's real dark tokens, consistent with the rest of KaydBooks.
   const theme = {
-    background: colorScheme === 'dark' ? COLORS.BACKGROUND : '#FFFFFF',
-    surface: colorScheme === 'dark' ? COLORS.BACKGROUND : '#F8F9FA',
-    text: colorScheme === 'dark' ? COLORS.TEXT : '#1A1A1A',
-    textSecondary: colorScheme === 'dark' ? COLORS.TEXT_SECONDARY : '#6B7280',
-    border: colorScheme === 'dark' ? COLORS.BORDER : '#E5E7EB',
+    background: COLORS.BACKGROUND,
+    surface: COLORS.SURFACE,
+    text: COLORS.TEXT,
+    textSecondary: COLORS.TEXT_SECONDARY,
+    border: COLORS.BORDER,
     error: COLORS.ERROR,
     errorLight: COLORS.ERROR_LIGHT,
   };
@@ -92,23 +101,38 @@ const DeleteAccountScreen = ({ navigation }) => {
     return confirmationText.trim() === 'DELETE MY ACCOUNT';
   };
 
+  // PHASE 2 fix: this used to be `await new Promise(resolve =>
+  // setTimeout(resolve, 2000))` -- literally commented "Simulate account
+  // deletion process" -- then just signed the user out. A user who
+  // walked through this entire "irreversible, permanent" consent flow
+  // had none of their data actually deleted. Now really deletes every
+  // row this client has RLS permission to delete (see
+  // services/supabase.js's deleteAllUserData). It's still honest about
+  // one real limit: fully closing the login itself (the auth.users
+  // record) requires a server-side Edge Function with service_role
+  // access that doesn't exist yet -- the alert below says so rather than
+  // claiming the account itself is gone.
   const handleFinalDelete = async () => {
     try {
       setLoading(true);
-      
-      // Simulate account deletion process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Sign out user
+
+      if (user?.id) {
+        await deleteAllUserData(user.id);
+      }
+
       await signOut();
-      
-      // Navigate back to auth flow
+
       navigation.reset({
         index: 0,
         routes: [{ name: 'Auth' }],
       });
+
+      Alert.alert(
+        'Your data has been deleted',
+        'Your favorites, downloads, and reading/listening history have been removed. To fully close your account and sign-in credentials, please also contact support -- that step currently requires manual processing.'
+      );
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete account. Please try again.');
+      Alert.alert('Error', 'Failed to delete your account data. Please try again.');
     } finally {
       setLoading(false);
       setShowFinalModal(false);

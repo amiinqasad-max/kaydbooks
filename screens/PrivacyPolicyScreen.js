@@ -9,7 +9,7 @@ import {
 import { Text } from 'react-native';
 import { Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
 
 const PrivacyPolicyScreen = ({ navigation }) => {
   const handleOpenPrivacyPolicy = async () => {
@@ -104,18 +104,15 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.LG,
   },
   title: {
-    fontSize: FONTS.SIZES.TITLE,
-    fontFamily: FONTS.BOLD,
+    ...TYPOGRAPHY.h1,
     color: COLORS.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.LG,
   },
   description: {
-    fontSize: FONTS.SIZES.MEDIUM,
-    fontFamily: FONTS.REGULAR,
+    ...TYPOGRAPHY.body,
     color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
-    lineHeight: 22,
     marginBottom: SPACING.XL,
   },
   highlights: {
@@ -129,8 +126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.MD,
   },
   highlightText: {
-    fontSize: FONTS.SIZES.MEDIUM,
-    fontFamily: FONTS.REGULAR,
+    ...TYPOGRAPHY.body,
     color: COLORS.TEXT,
     marginLeft: SPACING.SM,
     flex: 1,
@@ -142,11 +138,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.XL,
   },
   footer: {
-    fontSize: FONTS.SIZES.SMALL,
-    fontFamily: FONTS.REGULAR,
+    ...TYPOGRAPHY.caption,
     color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
-    lineHeight: 18,
   },
 });
 
