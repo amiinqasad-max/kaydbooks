@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
-  TextInput,
   Dimensions,
   RefreshControl,
   Text,
@@ -17,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getBooks, addToFavorites, removeFromFavorites, isFavorite } from '../services/supabase';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
-import { EmptyState } from '../components/ui';
+import { EmptyState, SearchInput, Chip } from '../components/ui';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - (SPACING.LG * 3)) / 2;
@@ -33,7 +32,11 @@ const ModernExploreScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
 
-  const categories = ['All', 'Fiction', 'History', 'Self Development', 'Novel', 'General', 'Diini'];
+  // PHASE 2 (#24, real data only): was a hardcoded static category list
+  // that could drift from what's actually in the `books` table (missing
+  // a real category, or showing an empty one). Derived from the loaded
+  // books instead, so the chips always match real content.
+  const categories = ['All', ...Array.from(new Set(books.map((b) => b.category).filter(Boolean))).sort()];
 
   useEffect(() => {
     loadBooks();
@@ -118,20 +121,11 @@ const ModernExploreScreen = ({ navigation }) => {
     }
   };
 
-  const renderCategoryChip = ({ item }) => {
-    const isSelected = item === selectedCategory;
-    
-    return (
-      <TouchableOpacity
-        style={[styles.categoryChip, isSelected && styles.selectedCategoryChip]}
-        onPress={() => setSelectedCategory(item)}
-      >
-        <Text style={[styles.categoryChipText, isSelected && styles.selectedCategoryChipText]}>
-          {item}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
+  // PHASE 2: shared Chip component (components/ui/Badge.js) instead of a
+  // bespoke TouchableOpacity + conditional style pair.
+  const renderCategoryChip = ({ item }) => (
+    <Chip label={item} selected={item === selectedCategory} onPress={() => setSelectedCategory(item)} />
+  );
 
   const renderBookCard = ({ item }) => {
     const isFav = favorites.has(item.id);
@@ -230,23 +224,15 @@ const ModernExploreScreen = ({ navigation }) => {
       >
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>🔍 {t('explore.title')}</Text>
-          
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <MaterialCommunityIcons name="magnify" size={20} color={COLORS.TEXT} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t('explore.searchPlaceholder')}
-              placeholderTextColor={COLORS.TEXT}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <MaterialCommunityIcons name="close" size={20} color={COLORS.TEXT} />
-              </TouchableOpacity>
-            )}
-          </View>
+
+          {/* PHASE 2: shared SearchInput (components/ui/SearchInput.js)
+              instead of a hand-rolled TextInput + icon row. */}
+          <SearchInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder={t('explore.searchPlaceholder')}
+            style={styles.searchInputWrapper}
+          />
         </View>
       </LinearGradient>
 
@@ -262,14 +248,15 @@ const ModernExploreScreen = ({ navigation }) => {
         />
       </View>
 
-      {/* Results Count */}
+      {/* Results Count. PHASE 2: removed the "tune" filter icon that sat
+          here -- it had no onPress handler at all (dead, non-functional
+          UI -- tapping it did nothing), and no filter sheet exists
+          anywhere in the app to wire it to. Category chips above are the
+          app's real, working filter mechanism. */}
       <View style={styles.resultsHeader}>
         <Text style={styles.resultsText}>
           {filteredBooks.length} book{filteredBooks.length !== 1 ? 's' : ''} found
         </Text>
-        <TouchableOpacity style={styles.filterBtn}>
-          <MaterialCommunityIcons name="tune" size={20} color={COLORS.BUTTON} />
-        </TouchableOpacity>
       </View>
 
       {/* Books Grid */}
@@ -314,21 +301,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: SPACING.LG,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  searchInputWrapper: {
     backgroundColor: COLORS.BACKGROUND,
-    borderRadius: BORDER_RADIUS.LG,
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.SM,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: SPACING.SM,
-    fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
   },
   categoriesSection: {
     backgroundColor: COLORS.BACKGROUND,
@@ -336,27 +310,6 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingHorizontal: SPACING.LG,
-  },
-  categoryChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: BORDER_RADIUS.LG,
-    paddingHorizontal: SPACING.MD,
-    paddingVertical: SPACING.SM,
-    marginRight: SPACING.SM,
-    borderWidth: 1,
-    borderColor: COLORS.BORDER,
-  },
-  selectedCategoryChip: {
-    backgroundColor: COLORS.BUTTON,
-    borderColor: COLORS.BUTTON,
-  },
-  categoryChipText: {
-    color: COLORS.TEXT,
-    fontSize: FONTS.SIZES.SMALL,
-    fontWeight: '600',
-  },
-  selectedCategoryChipText: {
-    color: COLORS.BUTTON_TEXT,
   },
   resultsHeader: {
     flexDirection: 'row',
@@ -369,9 +322,6 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     opacity: 0.8,
-  },
-  filterBtn: {
-    padding: SPACING.SM,
   },
   booksContainer: {
     paddingHorizontal: SPACING.LG,

@@ -1,20 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  Text,
-  Platform,
-  ToastAndroid,
-} from 'react-native';
-import { Button } from 'react-native-paper';
-import { ProgressBar } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Image, Alert, Text, Platform, ToastAndroid } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import safeNotificationService from '../services/safeNotificationService';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getReadingProgressDetailed,
@@ -26,18 +12,34 @@ import {
   checkIfDownloaded,
 } from '../services/supabase';
 import { downloadAudioBook, downloadBookPdf, deleteDownload as deleteLocalFile } from '../services/downloadManager';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, SHADOWS } from '../constants/theme';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { ScreenContainer, PrimaryButton, SecondaryButton, IconButton, ProgressBar, Badge } from '../components/ui';
 
+// PHASE 2 update -- Book Details (#10). Fixed two "real data only" (#24)
+// violations found during the pass:
+//   - Every book showed the literal hardcoded string "Added November 7,
+//     2025" regardless of when it was actually added. `books.created_at`
+//     exists (database/schema.sql) and was simply never read here.
+//   - The reading-progress row always showed the literal string
+//     "Page 0 of ?" no matter how far the user had actually read --
+//     `current_page`/`total_pages` came back from getReadingProgressDetailed
+//     but only the percentage was ever used. `book.pages` (also real,
+//     schema-defined) is used as the total when the progress row doesn't
+//     have one yet.
+// Also moved onto the design system: TYPOGRAPHY scale, shared
+// PrimaryButton/SecondaryButton/ProgressBar/Badge/IconButton instead of
+// bespoke TouchableOpacity buttons, ScreenContainer for safe-area
+// handling. Download/favorite/reading-progress logic is unchanged from
+// Phase 1/1.5 -- this is a visual/consistency pass, not a behavior change.
 const BookDetailScreen = ({ route, navigation }) => {
   const { book } = route.params;
   const { user } = useAuth();
-  const { t } = useTranslation();
   const [isFav, setIsFav] = useState(false);
   const [isAudioDownloaded, setIsAudioDownloaded] = useState(false);
   const [isPdfDownloaded, setIsPdfDownloaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [readingProgress, setReadingProgress] = useState(0);
+  const [progress, setProgress] = useState({ percentage: 0, currentPage: 0, totalPages: book.pages || 0 });
 
   // PHASE 1.7: moved above the useEffect that calls them -- see
   // components/PremiumGate.js for the full rationale.
@@ -65,11 +67,11 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   async function loadReadingProgress() {
     try {
-      const progress = await getReadingProgressDetailed(user.id, book.id);
-      if (progress) {
-        const percentage = (progress.current_page / progress.total_pages) * 100;
-        setReadingProgress(Math.round(percentage));
-      }
+      const data = await getReadingProgressDetailed(user.id, book.id);
+      const totalPages = data?.total_pages || book.pages || 0;
+      const currentPage = data?.current_page || 0;
+      const percentage = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+      setProgress({ percentage, currentPage, totalPages });
     } catch (error) {
       console.error('Error loading reading progress:', error);
     }
@@ -90,6 +92,14 @@ const BookDetailScreen = ({ route, navigation }) => {
       Alert.alert('Info', message);
     }
   };
+
+  // Real date, formatted, or nothing -- never a fabricated one (Phase 2 #24).
+  const addedDateLabel = (() => {
+    if (!book.created_at) return null;
+    const date = new Date(book.created_at);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  })();
 
   // PHASE 1: these used to be stubbed to "Download Disabled" / "Delete
   // Disabled" alerts -- offline reading/listening did not actually work.
@@ -166,7 +176,6 @@ const BookDetailScreen = ({ route, navigation }) => {
 
   const toggleFavorite = async () => {
     if (!user) return;
-
     try {
       if (isFav) {
         await removeFromFavorites(user.id, book.id);
@@ -183,136 +192,113 @@ const BookDetailScreen = ({ route, navigation }) => {
     }
   };
 
+  const hasAudio = Boolean(book.audio_url && book.audio_url.trim() !== '');
+
   return (
-    <View style={styles.container}>
+    <ScreenContainer edges={['bottom']}>
       <ScrollView style={styles.scrollView}>
-        {/* Cover Image */}
         <View style={styles.coverContainer}>
           <Image source={{ uri: book.cover_url }} style={styles.coverImage} />
-          
-          <TouchableOpacity
-            style={styles.favoriteButton}
+          <IconButton
+            icon={<MaterialCommunityIcons name={isFav ? 'heart' : 'heart-outline'} size={22} color={isFav ? COLORS.ERROR : COLORS.TEXT} />}
             onPress={toggleFavorite}
-          >
-            <MaterialCommunityIcons
-              name={isFav ? "heart" : "heart-outline"}
-              size={24}
-              color={isFav ? COLORS.ERROR : COLORS.TEXT}
-            />
-          </TouchableOpacity>
+            backgroundColor="rgba(0, 0, 0, 0.5)"
+            accessibilityLabel={isFav ? 'Remove from favorites' : 'Add to favorites'}
+            style={styles.favoriteButton}
+          />
         </View>
 
-        {/* Book Info */}
         <View style={styles.infoContainer}>
           <Text style={styles.title}>{book.title}</Text>
           <Text style={styles.author}>by {book.author}</Text>
-          <Text style={styles.category}>📚 {book.category}</Text>
-          <Text style={styles.addedDate}>📅 Added November 7, 2025</Text>
+          <View style={styles.metaRow}>
+            {book.category ? <Badge label={book.category} variant="accent" /> : null}
+            {hasAudio ? <Badge label="Audiobook" variant="neutral" /> : null}
+          </View>
+          {addedDateLabel ? <Text style={styles.addedDate}>Added {addedDateLabel}</Text> : null}
         </View>
 
-        {/* Description */}
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>{book.description}</Text>
-        </View>
+        {book.description ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.description}>{book.description}</Text>
+          </View>
+        ) : null}
 
-        {/* Reading Progress */}
-        <View style={styles.progressContainer}>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Reading Progress</Text>
           <View style={styles.progressInfo}>
             <Text style={styles.progressText}>
-              {readingProgress > 0 ? `${readingProgress}% complete` : 'Not started'}
+              {progress.percentage > 0 ? `${progress.percentage}% complete` : 'Not started'}
             </Text>
-            <Text style={styles.progressPages}>Page 0 of ?</Text>
+            {progress.totalPages > 0 ? (
+              <Text style={styles.progressPages}>Page {progress.currentPage} of {progress.totalPages}</Text>
+            ) : null}
           </View>
-          {readingProgress > 0 && (
-            <View style={styles.progressBarContainer}>
-              <ProgressBar
-                progress={readingProgress / 100}
-                color={COLORS.BUTTON}
-                style={styles.progressBar}
-              />
-            </View>
-          )}
+          {progress.percentage > 0 ? (
+            <ProgressBar progress={progress.percentage} style={styles.progressBar} accessibilityLabel="Reading progress" />
+          ) : null}
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.buttonsContainer}>
           {book.pdf_url && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.primaryButton]}
-              onPress={() => {
-                navigation.navigate('PDFViewScreen', {
-                  // Prefer the storage path so the reader resolves a
-                  // fresh, short-lived Signed URL at open time (protected
-                  // by RLS) instead of a permanent public link. Also pass
-                  // the full `book` so the reader can check for/read from
-                  // a local offline copy and offer "Continue with Audio".
-                  pdfPath: book.pdf_path || null,
-                  bookId: book.id,
-                  pdfUrl: book.pdf_url, // legacy fallback for pre-migration rows
-                  book,
-                });
-              }}
-            >
-              <Text style={styles.buttonText}>📖 Read Book</Text>
-            </TouchableOpacity>
+            <PrimaryButton
+              label="Read Book"
+              icon={<MaterialCommunityIcons name="book-open-variant" size={18} color={COLORS.BUTTON_TEXT} style={styles.buttonIcon} />}
+              style={styles.actionButton}
+              onPress={() => navigation.navigate('PDFViewScreen', {
+                // Prefer the storage path so the reader resolves a fresh,
+                // short-lived Signed URL at open time (protected by RLS)
+                // instead of a permanent public link. Also pass the full
+                // `book` so the reader can check for a local offline copy
+                // and offer "Continue with Audio".
+                pdfPath: book.pdf_path || null,
+                bookId: book.id,
+                pdfUrl: book.pdf_url, // legacy fallback for pre-migration rows
+                book,
+              })}
+            />
           )}
 
           {book.pdf_url && (
-            <TouchableOpacity
-              style={[styles.actionButton, isPdfDownloaded ? styles.offlineButton : styles.downloadButton]}
-              disabled={isDownloading}
+            <SecondaryButton
+              label={isPdfDownloaded ? 'Downloaded (tap to remove)' : isDownloading ? `Downloading... ${downloadProgress}%` : 'Download for Offline'}
+              icon={<MaterialCommunityIcons name={isPdfDownloaded ? 'check-circle' : 'download'} size={16} color={COLORS.ACCENT} style={styles.buttonIcon} />}
+              style={styles.actionButton}
+              loading={isDownloading}
               onPress={isPdfDownloaded ? () => deleteDownload('pdf') : handleDownloadPdf}
-            >
-              <Text style={styles.buttonText}>
-                {isPdfDownloaded ? '✓ Downloaded (tap to remove)' : isDownloading ? `Downloading... ${downloadProgress}%` : '⬇️ Download for Offline'}
-              </Text>
-            </TouchableOpacity>
+            />
           )}
 
-          {book.audio_url && book.audio_url.trim() !== '' ? (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.primaryButton]}
+          {hasAudio ? (
+            <PrimaryButton
+              label="Listen Audio"
+              icon={<MaterialCommunityIcons name="headphones" size={18} color={COLORS.BUTTON_TEXT} style={styles.buttonIcon} />}
+              style={styles.actionButton}
               onPress={() => navigation.navigate('AudioPlayer', { book })}
-            >
-              <Text style={styles.buttonText}>🎧 Listen Audio</Text>
-            </TouchableOpacity>
+            />
           ) : (
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#666666' }]}
-              disabled={true}
-            >
-              <Text style={[styles.buttonText, { opacity: 0.6 }]}>🔇 No Audio Available</Text>
-            </TouchableOpacity>
+            <View style={[styles.actionButton, styles.disabledButton]}>
+              <Text style={styles.disabledButtonText}>No Audio Available</Text>
+            </View>
           )}
 
           {book.audio_url && (
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                isAudioDownloaded ? styles.offlineButton : styles.downloadButton
-              ]}
-              disabled={isDownloading}
+            <SecondaryButton
+              label={isAudioDownloaded ? 'Downloaded (tap to remove)' : isDownloading ? `Downloading... ${downloadProgress}%` : 'Download Audio'}
+              icon={<MaterialCommunityIcons name={isAudioDownloaded ? 'check-circle' : 'download'} size={16} color={COLORS.ACCENT} style={styles.buttonIcon} />}
+              style={styles.actionButton}
+              loading={isDownloading}
               onPress={isAudioDownloaded ? () => deleteDownload('audio') : handleDownloadAudio}
-            >
-              <Text style={styles.buttonText}>
-                {isAudioDownloaded
-                  ? "✓ Downloaded (tap to remove)"
-                  : isDownloading
-                    ? `Downloading... ${downloadProgress}%`
-                    : "⬇️ Download Audio"}
-              </Text>
-            </TouchableOpacity>
+            />
           )}
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: COMMON_STYLES.container,
   scrollView: {
     flex: 1,
   },
@@ -326,14 +312,12 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: BORDER_RADIUS.MD,
     resizeMode: 'cover',
+    ...SHADOWS.MEDIUM,
   },
   favoriteButton: {
     position: 'absolute',
     top: SPACING.LG,
     right: SPACING.LG,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: BORDER_RADIUS.ROUND,
-    padding: SPACING.SM,
   },
   infoContainer: {
     paddingHorizontal: SPACING.LG,
@@ -341,51 +325,38 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.LG,
   },
   title: {
-    fontSize: FONTS.SIZES.TITLE,
-    fontFamily: FONTS.BOLD,
+    ...TYPOGRAPHY.h1,
     color: COLORS.TEXT,
-    textAlign: 'center',
-    marginBottom: SPACING.SM,
-  },
-  author: {
-    fontSize: FONTS.SIZES.LARGE,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: 'center',
-    marginBottom: SPACING.SM,
-  },
-  category: {
-    fontSize: FONTS.SIZES.MEDIUM,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.BUTTON,
     textAlign: 'center',
     marginBottom: SPACING.XS,
   },
-  addedDate: {
-    fontSize: FONTS.SIZES.SMALL,
-    fontFamily: FONTS.REGULAR,
+  author: {
+    ...TYPOGRAPHY.body,
     color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
+    marginBottom: SPACING.SM_MD,
   },
-  descriptionContainer: {
+  metaRow: {
+    flexDirection: 'row',
+    gap: SPACING.SM,
+    marginBottom: SPACING.SM,
+  },
+  addedDate: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.TEXT_MUTED,
+  },
+  section: {
     paddingHorizontal: SPACING.LG,
     marginBottom: SPACING.LG,
   },
   sectionTitle: {
-    fontSize: FONTS.SIZES.LARGE,
-    fontFamily: FONTS.BOLD,
-    color: COLORS.BUTTON,
+    ...TYPOGRAPHY.h3,
+    color: COLORS.TEXT,
     marginBottom: SPACING.SM,
   },
   description: {
-    fontSize: FONTS.SIZES.MEDIUM,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.TEXT,
-    lineHeight: 22,
-  },
-  progressContainer: {
-    paddingHorizontal: SPACING.LG,
-    marginBottom: SPACING.LG,
+    ...TYPOGRAPHY.reading,
+    color: COLORS.TEXT_SECONDARY,
   },
   progressInfo: {
     flexDirection: 'row',
@@ -394,50 +365,37 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SM,
   },
   progressText: {
-    fontSize: FONTS.SIZES.MEDIUM,
-    fontFamily: FONTS.REGULAR,
+    ...TYPOGRAPHY.body,
     color: COLORS.TEXT,
   },
   progressPages: {
-    fontSize: FONTS.SIZES.SMALL,
-    fontFamily: FONTS.REGULAR,
-    color: COLORS.TEXT_SECONDARY,
-  },
-  progressBarContainer: {
-    marginTop: SPACING.SM,
+    ...TYPOGRAPHY.caption,
+    color: COLORS.TEXT_MUTED,
   },
   progressBar: {
-    height: 8,
-    borderRadius: BORDER_RADIUS.SM,
-    backgroundColor: COLORS.PROGRESS_BACKGROUND,
+    marginTop: SPACING.XS,
   },
   buttonsContainer: {
     paddingHorizontal: SPACING.LG,
     paddingBottom: SPACING.XL,
   },
   actionButton: {
-    borderRadius: BORDER_RADIUS.LG,
-    paddingVertical: SPACING.LG,
-    paddingHorizontal: SPACING.XL,
-    marginBottom: SPACING.MD,
+    marginBottom: SPACING.SM_MD,
+  },
+  buttonIcon: {
+    marginRight: SPACING.XS,
+  },
+  disabledButton: {
+    minHeight: 48,
+    borderRadius: BORDER_RADIUS.MD,
+    backgroundColor: COLORS.SURFACE_SECONDARY,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,
-    ...SHADOWS.LIGHT,
+    marginBottom: SPACING.SM_MD,
   },
-  primaryButton: {
-    backgroundColor: COLORS.BUTTON,
-  },
-  downloadButton: {
-    backgroundColor: COLORS.BUTTON,
-  },
-  offlineButton: {
-    backgroundColor: COLORS.SUCCESS,
-  },
-  buttonText: {
-    color: COLORS.BUTTON_TEXT,
-    fontSize: FONTS.SIZES.MEDIUM,
-    fontWeight: 'bold',
+  disabledButtonText: {
+    ...TYPOGRAPHY.button,
+    color: COLORS.TEXT_MUTED,
   },
 });
 
