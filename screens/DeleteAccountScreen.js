@@ -12,7 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { deleteAllUserData } from '../services/supabase';
 
@@ -29,26 +30,26 @@ const DeleteAccountScreen = ({ navigation }) => {
   const [slideAnim] = useState(new Animated.Value(50));
   
   const { user, signOut } = useAuth();
+  const { colors } = useTheme();
 
-  // PHASE 2 fix: this used to branch on the device's OS-level
-  // useColorScheme() and switch to a white/light palette when the
-  // system was in light mode -- but this is the ONLY screen in the
-  // entire app that did that. Every other screen is unconditionally
-  // dark (constants/theme.js has no light-mode token set at all, per
-  // this phase's design-system audit). The result was a real, jarring
-  // bug: a user with their OS set to light mode would see this one
-  // screen flip to a white background mid-navigation while every other
-  // screen around it stayed dark blue. Kept the `theme.*` object (all
-  // its usages below are unchanged) but now always resolves to the
-  // app's real dark tokens, consistent with the rest of KaydBooks.
+  // PHASE 2 fix (earlier this phase): this used to branch on the
+  // device's OS-level useColorScheme() and switch to a white/light
+  // palette when the system was in light mode -- but this was the ONLY
+  // screen in the app that did that; every other screen was
+  // unconditionally dark. Fixed by unconditionally resolving to the
+  // app's dark tokens back then, since no real light theme existed yet.
+  // Now that a real ThemeContext exists, `theme.*` (kept for all its
+  // usages below, unchanged) maps onto the live active palette instead
+  // -- this screen now genuinely follows the user's light/dark choice
+  // like every other migrated screen.
   const theme = {
-    background: COLORS.BACKGROUND,
-    surface: COLORS.SURFACE,
-    text: COLORS.TEXT,
-    textSecondary: COLORS.TEXT_SECONDARY,
-    border: COLORS.BORDER,
-    error: COLORS.ERROR,
-    errorLight: COLORS.ERROR_LIGHT,
+    background: colors.BACKGROUND,
+    surface: colors.SURFACE,
+    text: colors.TEXT,
+    textSecondary: colors.TEXT_SECONDARY,
+    border: colors.BORDER,
+    error: colors.ERROR,
+    errorLight: colors.ERROR_LIGHT,
   };
 
   useEffect(() => {
@@ -332,7 +333,7 @@ const DeleteAccountScreen = ({ navigation }) => {
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.modalDeleteButton, loading && styles.disabledButton]}
+              style={[styles.modalDeleteButton, { backgroundColor: theme.error }, loading && styles.disabledButton]}
               onPress={handleFinalDelete}
               disabled={loading}
             >
@@ -729,7 +730,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: SPACING.LG,
     borderRadius: BORDER_RADIUS.MD,
-    backgroundColor: COLORS.ERROR,
     alignItems: 'center',
     ...SHADOWS.MEDIUM,
   },

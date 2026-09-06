@@ -9,9 +9,13 @@ import {
 import { Text } from 'react-native';
 import { Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const PrivacyPolicyScreen = ({ navigation }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   const handleOpenPrivacyPolicy = async () => {
     try {
       const url = 'https://kaydbooks.com/wp/kayd-books-privacy-policy/';
@@ -35,7 +39,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <MaterialCommunityIcons 
             name="shield-check" 
             size={64} 
-            color={COLORS.BUTTON} 
+            color={colors.BUTTON} 
             style={styles.icon}
           />
           
@@ -48,22 +52,22 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           
           <View style={styles.highlights}>
             <View style={styles.highlight}>
-              <MaterialCommunityIcons name="check-circle" size={20} color={COLORS.SUCCESS} />
+              <MaterialCommunityIcons name="check-circle" size={20} color={colors.SUCCESS} />
               <Text style={styles.highlightText}>Data encryption and security</Text>
             </View>
             
             <View style={styles.highlight}>
-              <MaterialCommunityIcons name="check-circle" size={20} color={COLORS.SUCCESS} />
+              <MaterialCommunityIcons name="check-circle" size={20} color={colors.SUCCESS} />
               <Text style={styles.highlightText}>No data sharing with third parties</Text>
             </View>
             
             <View style={styles.highlight}>
-              <MaterialCommunityIcons name="check-circle" size={20} color={COLORS.SUCCESS} />
+              <MaterialCommunityIcons name="check-circle" size={20} color={colors.SUCCESS} />
               <Text style={styles.highlightText}>Account deletion available anytime</Text>
             </View>
             
             <View style={styles.highlight}>
-              <MaterialCommunityIcons name="check-circle" size={20} color={COLORS.SUCCESS} />
+              <MaterialCommunityIcons name="check-circle" size={20} color={colors.SUCCESS} />
               <Text style={styles.highlightText}>Transparent subscription terms</Text>
             </View>
           </View>
@@ -87,10 +91,10 @@ const PrivacyPolicyScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   content: {
     padding: SPACING.LG,
@@ -105,13 +109,13 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.LG,
   },
   description: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.XL,
   },
@@ -127,19 +131,19 @@ const styles = StyleSheet.create({
   },
   highlightText: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginLeft: SPACING.SM,
     flex: 1,
   },
   button: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     paddingVertical: SPACING.SM,
     paddingHorizontal: SPACING.XL,
     marginBottom: SPACING.XL,
   },
   footer: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textAlign: 'center',
   },
 });

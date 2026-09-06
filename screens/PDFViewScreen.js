@@ -15,7 +15,8 @@ import Pdf from 'react-native-pdf';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import debounce from 'lodash.debounce';
-import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
+import { TYPOGRAPHY, SPACING } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   getSignedFileUrl,
   getChaptersForBook,
@@ -79,6 +80,8 @@ const PDFViewScreen = ({ route, navigation }) => {
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState([]);
   const [noteDraft, setNoteDraft] = useState('');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const pdfRef = useRef(null);
   const initialPageRef = useRef(1);
@@ -249,7 +252,7 @@ const PDFViewScreen = ({ route, navigation }) => {
   if (error) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <MaterialCommunityIcons name="alert-circle-outline" size={48} color={COLORS.TEXT} />
+        <MaterialCommunityIcons name="alert-circle-outline" size={48} color={colors.TEXT} />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backLink}>
           <Text style={styles.backLinkText}>Go back</Text>
@@ -261,7 +264,7 @@ const PDFViewScreen = ({ route, navigation }) => {
   if (!source) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator color={COLORS.BUTTON} />
+        <ActivityIndicator color={colors.BUTTON} />
       </View>
     );
   }
@@ -291,35 +294,35 @@ const PDFViewScreen = ({ route, navigation }) => {
         <>
           <View style={styles.topBar}>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()} accessibilityLabel="Back">
-              <MaterialCommunityIcons name="chevron-left" size={28} color={COLORS.TEXT} />
+              <MaterialCommunityIcons name="chevron-left" size={28} color={colors.TEXT} />
             </TouchableOpacity>
             <Text style={styles.pageIndicator}>{numberOfPages ? `${page} / ${numberOfPages}` : ''}</Text>
             <View style={{ flexDirection: 'row' }}>
               {chapters.length > 0 && (
                 <TouchableOpacity style={styles.iconButton} onPress={() => setShowChapters(true)} accessibilityLabel="Chapters">
-                  <MaterialCommunityIcons name="format-list-bulleted" size={22} color={COLORS.TEXT} />
+                  <MaterialCommunityIcons name="format-list-bulleted" size={22} color={colors.TEXT} />
                 </TouchableOpacity>
               )}
               <TouchableOpacity style={styles.iconButton} onPress={() => setShowBookmarks(true)} accessibilityLabel="Bookmarks">
-                <MaterialCommunityIcons name="bookmark-outline" size={22} color={COLORS.TEXT} />
+                <MaterialCommunityIcons name="bookmark-outline" size={22} color={colors.TEXT} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton} onPress={() => setShowNotes(true)} accessibilityLabel="Notes">
-                <MaterialCommunityIcons name="note-text-outline" size={22} color={COLORS.TEXT} />
+                <MaterialCommunityIcons name="note-text-outline" size={22} color={colors.TEXT} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton} onPress={toggleNightMode} accessibilityLabel="Toggle night mode">
-                <MaterialCommunityIcons name={nightMode ? 'weather-night' : 'white-balance-sunny'} size={22} color={COLORS.TEXT} />
+                <MaterialCommunityIcons name={nightMode ? 'weather-night' : 'white-balance-sunny'} size={22} color={colors.TEXT} />
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.bottomBar}>
             <TouchableOpacity style={styles.bookmarkFab} onPress={addBookmarkHere} accessibilityLabel="Bookmark this page">
-              <MaterialCommunityIcons name="bookmark-plus-outline" size={20} color={COLORS.BUTTON_TEXT} />
+              <MaterialCommunityIcons name="bookmark-plus-outline" size={20} color={colors.BUTTON_TEXT} />
               <Text style={styles.bookmarkFabText}>Bookmark this page</Text>
             </TouchableOpacity>
             {book?.audio_url || book?.audio_path ? (
               <TouchableOpacity style={styles.audioFab} onPress={continueWithAudio} accessibilityLabel="Continue with audio">
-                <MaterialCommunityIcons name="headphones" size={20} color={COLORS.BUTTON_TEXT} />
+                <MaterialCommunityIcons name="headphones" size={20} color={colors.BUTTON_TEXT} />
                 <Text style={styles.bookmarkFabText}>Continue with Audio</Text>
               </TouchableOpacity>
             ) : null}
@@ -328,7 +331,7 @@ const PDFViewScreen = ({ route, navigation }) => {
       )}
       {isOffline && controlsVisible && (
         <View style={styles.offlineBadge}>
-          <MaterialCommunityIcons name="check-circle" size={14} color={COLORS.SUCCESS} />
+          <MaterialCommunityIcons name="check-circle" size={14} color={colors.SUCCESS} />
           <Text style={styles.offlineBadgeText}>Reading offline</Text>
         </View>
       )}
@@ -376,7 +379,7 @@ const PDFViewScreen = ({ route, navigation }) => {
                       }}
                       accessibilityLabel="Delete bookmark"
                     >
-                      <MaterialCommunityIcons name="delete-outline" size={18} color={COLORS.ERROR} />
+                      <MaterialCommunityIcons name="delete-outline" size={18} color={colors.ERROR} />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -398,7 +401,7 @@ const PDFViewScreen = ({ route, navigation }) => {
               value={noteDraft}
               onChangeText={setNoteDraft}
               placeholder={`Add a note for page ${page}...`}
-              placeholderTextColor={COLORS.TEXT_SECONDARY}
+              placeholderTextColor={colors.TEXT_SECONDARY}
               style={styles.noteInput}
               multiline
             />
@@ -431,14 +434,14 @@ const PDFViewScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.BACKGROUND },
+const createStyles = (colors) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.BACKGROUND },
   centered: { alignItems: 'center', justifyContent: 'center', padding: 24 },
-  pdf: { flex: 1, width: '100%', height: '100%', backgroundColor: COLORS.BACKGROUND },
+  pdf: { flex: 1, width: '100%', height: '100%', backgroundColor: colors.BACKGROUND },
   nightOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
-  errorText: { color: COLORS.TEXT, textAlign: 'center', fontSize: 15, marginTop: 12 },
+  errorText: { color: colors.TEXT, textAlign: 'center', fontSize: 15, marginTop: 12 },
   backLink: { marginTop: 16 },
-  backLinkText: { color: COLORS.BUTTON, fontWeight: '600' },
+  backLinkText: { color: colors.BUTTON, fontWeight: '600' },
   topBar: {
     position: 'absolute', top: 0, left: 0, right: 0,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -446,18 +449,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
   iconButton: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  pageIndicator: { color: COLORS.TEXT, fontSize: 13, fontWeight: '600' },
+  pageIndicator: { color: colors.TEXT, fontSize: 13, fontWeight: '600' },
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row', justifyContent: 'space-between', gap: 8,
     paddingHorizontal: SPACING.MD, paddingVertical: SPACING.MD,
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
-  bookmarkFab: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.BUTTON, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
-  audioFab: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.BUTTON, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
-  bookmarkFabText: { color: COLORS.BUTTON_TEXT, fontSize: 12, fontWeight: '600' },
+  bookmarkFab: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.BUTTON, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
+  audioFab: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.BUTTON, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
+  bookmarkFabText: { color: colors.BUTTON_TEXT, fontSize: 12, fontWeight: '600' },
   offlineBadge: { position: 'absolute', top: 90, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  offlineBadgeText: { color: COLORS.TEXT, fontSize: 11 },
+  offlineBadgeText: { color: colors.TEXT, fontSize: 11 },
   // PHASE 2: modalContent now uses MODAL_BACKGROUND (a distinct, elevated
   // color as of this phase's design-system update) instead of the flat
   // screen BACKGROUND -- the bottom sheet now visibly reads as "above"
@@ -465,16 +468,16 @@ const styles = StyleSheet.create({
   // Everything else on this screen (reader logic, honesty limits,
   // controls-disappear behavior) is unchanged -- see the file header.
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: COLORS.MODAL_BACKGROUND, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: SPACING.LG, maxHeight: '70%' },
-  modalTitle: { ...TYPOGRAPHY.h3, color: COLORS.TEXT, marginBottom: SPACING.MD },
-  listRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.BORDER },
-  listRowText: { ...TYPOGRAPHY.body, color: COLORS.TEXT },
-  listRowMeta: { ...TYPOGRAPHY.caption, color: COLORS.TEXT_SECONDARY },
-  emptyText: { ...TYPOGRAPHY.body, color: COLORS.TEXT_SECONDARY, textAlign: 'center', marginVertical: 12 },
-  noteHint: { ...TYPOGRAPHY.caption, color: COLORS.TEXT_SECONDARY, marginBottom: 8 },
-  noteInput: { ...TYPOGRAPHY.body, color: COLORS.TEXT, borderWidth: 1, borderColor: COLORS.BORDER, borderRadius: 8, padding: 10, minHeight: 60, marginBottom: 8, textAlignVertical: 'top' },
+  modalContent: { backgroundColor: colors.MODAL_BACKGROUND, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: SPACING.LG, maxHeight: '70%' },
+  modalTitle: { ...TYPOGRAPHY.h3, color: colors.TEXT, marginBottom: SPACING.MD },
+  listRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.BORDER },
+  listRowText: { ...TYPOGRAPHY.body, color: colors.TEXT },
+  listRowMeta: { ...TYPOGRAPHY.caption, color: colors.TEXT_SECONDARY },
+  emptyText: { ...TYPOGRAPHY.body, color: colors.TEXT_SECONDARY, textAlign: 'center', marginVertical: 12 },
+  noteHint: { ...TYPOGRAPHY.caption, color: colors.TEXT_SECONDARY, marginBottom: 8 },
+  noteInput: { ...TYPOGRAPHY.body, color: colors.TEXT, borderWidth: 1, borderColor: colors.BORDER, borderRadius: 8, padding: 10, minHeight: 60, marginBottom: 8, textAlignVertical: 'top' },
   modalClose: { alignSelf: 'center', paddingVertical: 10 },
-  modalCloseText: { ...TYPOGRAPHY.button, color: COLORS.ACCENT },
+  modalCloseText: { ...TYPOGRAPHY.button, color: colors.ACCENT },
 });
 
 export default PDFViewScreen;

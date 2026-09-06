@@ -25,7 +25,8 @@ import {
   getAudioBookmarks,
   deleteAudioBookmark,
 } from '../services/supabase';
-import { COLORS, FONTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, GRADIENTS } from '../constants/theme';
+import { FONTS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { downloadAudioBook } from '../services/downloadManager';
 
 const { width, height } = Dimensions.get('window');
@@ -81,6 +82,8 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
+  const { colors, gradients } = useTheme();
+  const styles = createStyles(colors);
 
   const rotationValue = useRef(new Animated.Value(0)).current;
   const waveAnimation = useRef(new Animated.Value(0)).current;
@@ -220,8 +223,8 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
   if (isLoading && (!currentBook || currentBook.id !== book.id)) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <LinearGradient colors={GRADIENTS.SURFACE_FADE} style={styles.gradient}>
-          <MaterialCommunityIcons name="loading" size={50} color={COLORS.BUTTON} />
+        <LinearGradient colors={gradients.SURFACE_FADE} style={styles.gradient}>
+          <MaterialCommunityIcons name="loading" size={50} color={colors.BUTTON} />
           <Text style={styles.loadingText}>Loading audio...</Text>
         </LinearGradient>
       </View>
@@ -231,8 +234,8 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
   if (error && (!currentBook || currentBook.id !== book.id)) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <LinearGradient colors={GRADIENTS.SURFACE_FADE} style={styles.gradient}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={50} color={COLORS.TEXT} />
+        <LinearGradient colors={gradients.SURFACE_FADE} style={styles.gradient}>
+          <MaterialCommunityIcons name="alert-circle-outline" size={50} color={colors.TEXT} />
           <Text style={styles.loadingText}>{error}</Text>
           <Button mode="contained" onPress={() => navigation.goBack()} style={{ marginTop: SPACING.LG }}>
             Go back
@@ -244,14 +247,14 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={GRADIENTS.SURFACE_FADE} style={styles.gradient}>
+      <LinearGradient colors={gradients.SURFACE_FADE} style={styles.gradient}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()} accessibilityLabel="Minimize player">
-            <MaterialCommunityIcons name="chevron-down" size={28} color={COLORS.TEXT} />
+            <MaterialCommunityIcons name="chevron-down" size={28} color={colors.TEXT} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Now Playing</Text>
           <TouchableOpacity style={styles.headerButton} onPress={() => setShowBookmarks(true)} accessibilityLabel="Bookmarks">
-            <MaterialCommunityIcons name="bookmark" size={24} color={COLORS.TEXT} />
+            <MaterialCommunityIcons name="bookmark" size={24} color={colors.TEXT} />
           </TouchableOpacity>
         </View>
 
@@ -260,7 +263,7 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
             <Image source={{ uri: book.cover_url }} style={styles.coverImage} resizeMode="cover" />
             {isPlaying && (
               <View style={styles.playingIndicator}>
-                <MaterialCommunityIcons name="music-note" size={30} color={COLORS.BUTTON} />
+                <MaterialCommunityIcons name="music-note" size={30} color={colors.BUTTON} />
               </View>
             )}
           </Animated.View>
@@ -286,7 +289,7 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
             maximumValue={duration || 1}
             onValueChange={setSliderValue}
             onSlidingComplete={seekTo}
-            minimumTrackTintColor={COLORS.BUTTON}
+            minimumTrackTintColor={colors.BUTTON}
             maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
           />
           <View style={styles.progressInfo}>
@@ -297,35 +300,35 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
         <View style={styles.mainControls}>
           {chapters.length > 1 && (
             <TouchableOpacity style={styles.chapterButton} onPress={previousChapter} accessibilityLabel="Previous chapter">
-              <MaterialCommunityIcons name="skip-previous" size={26} color={COLORS.TEXT} />
+              <MaterialCommunityIcons name="skip-previous" size={26} color={colors.TEXT} />
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.controlButton} onPress={() => skipBackward(15)} accessibilityLabel="Back 15 seconds">
-            <MaterialCommunityIcons name="rewind-15" size={32} color={COLORS.TEXT} />
+            <MaterialCommunityIcons name="rewind-15" size={32} color={colors.TEXT} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.playButton} onPress={toggle} accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
-            <LinearGradient colors={GRADIENTS.ACCENT_BUTTON} style={styles.playButtonGradient}>
-              <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={40} color={COLORS.BUTTON_TEXT} />
+            <LinearGradient colors={gradients.ACCENT_BUTTON} style={styles.playButtonGradient}>
+              <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={40} color={colors.BUTTON_TEXT} />
             </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity style={styles.controlButton} onPress={() => skipForward(30)} accessibilityLabel="Forward 30 seconds">
-            <MaterialCommunityIcons name="fast-forward-30" size={32} color={COLORS.TEXT} />
+            <MaterialCommunityIcons name="fast-forward-30" size={32} color={colors.TEXT} />
           </TouchableOpacity>
           {chapters.length > 1 && (
             <TouchableOpacity style={styles.chapterButton} onPress={nextChapter} accessibilityLabel="Next chapter">
-              <MaterialCommunityIcons name="skip-next" size={26} color={COLORS.TEXT} />
+              <MaterialCommunityIcons name="skip-next" size={26} color={colors.TEXT} />
             </TouchableOpacity>
           )}
         </View>
 
         <View style={styles.secondaryControls}>
           <TouchableOpacity style={styles.secondaryButton} onPress={() => setShowSpeedModal(true)}>
-            <MaterialCommunityIcons name="speedometer" size={24} color={COLORS.TEXT} />
+            <MaterialCommunityIcons name="speedometer" size={24} color={colors.TEXT} />
             <Text style={styles.secondaryButtonText}>{playbackRate}x</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryButton} onPress={createBookmark}>
-            <MaterialCommunityIcons name="bookmark-plus" size={24} color={COLORS.TEXT} />
+            <MaterialCommunityIcons name="bookmark-plus" size={24} color={colors.TEXT} />
             <Text style={styles.secondaryButtonText}>Bookmark</Text>
           </TouchableOpacity>
 
@@ -333,24 +336,24 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
             <MaterialCommunityIcons
               name={isDownloaded ? 'download-circle' : isDownloading ? 'download' : 'download-outline'}
               size={24}
-              color={isDownloaded ? COLORS.SUCCESS : isDownloading ? COLORS.BUTTON : COLORS.TEXT}
+              color={isDownloaded ? colors.SUCCESS : isDownloading ? colors.BUTTON : colors.TEXT}
             />
-            <Text style={[styles.secondaryButtonText, isDownloading && { color: COLORS.BUTTON }, isDownloaded && { color: COLORS.SUCCESS }]}>
+            <Text style={[styles.secondaryButtonText, isDownloading && { color: colors.BUTTON }, isDownloaded && { color: colors.SUCCESS }]}>
               {isDownloaded ? 'Downloaded' : isDownloading ? `${downloadProgress}%` : 'Download'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryButton} onPress={() => setShowSleepModal(true)}>
-            <MaterialCommunityIcons name="sleep" size={24} color={sleepMinutes ? COLORS.BUTTON : COLORS.TEXT} />
-            <Text style={[styles.secondaryButtonText, sleepMinutes && { color: COLORS.BUTTON }]}>
+            <MaterialCommunityIcons name="sleep" size={24} color={sleepMinutes ? colors.BUTTON : colors.TEXT} />
+            <Text style={[styles.secondaryButtonText, sleepMinutes && { color: colors.BUTTON }]}>
               {sleepMinutes ? `${sleepMinutes}m` : 'Sleep'}
             </Text>
           </TouchableOpacity>
 
           {sleepMinutes && (
             <TouchableOpacity style={styles.secondaryButton} onPress={clearSleepTimer}>
-              <MaterialCommunityIcons name="sleep-off" size={24} color={COLORS.ERROR} />
-              <Text style={[styles.secondaryButtonText, { color: COLORS.ERROR }]}>Clear</Text>
+              <MaterialCommunityIcons name="sleep-off" size={24} color={colors.ERROR} />
+              <Text style={[styles.secondaryButtonText, { color: colors.ERROR }]}>Clear</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -408,14 +411,14 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
                         style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
                         onPress={() => { seekTo(item.position_seconds); setShowBookmarks(false); }}
                       >
-                        <MaterialCommunityIcons name="bookmark" size={20} color={COLORS.BUTTON} />
+                        <MaterialCommunityIcons name="bookmark" size={20} color={colors.BUTTON} />
                         <View style={styles.bookmarkInfo}>
                           <Text style={styles.bookmarkName}>{item.label || 'Bookmark'}</Text>
                           <Text style={styles.bookmarkTime}>{formatTime(item.position_seconds)}</Text>
                         </View>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => removeBookmark(item.id)} accessibilityLabel="Delete bookmark">
-                        <MaterialCommunityIcons name="delete-outline" size={20} color={COLORS.ERROR} />
+                        <MaterialCommunityIcons name="delete-outline" size={20} color={colors.ERROR} />
                       </TouchableOpacity>
                     </View>
                   )}
@@ -432,28 +435,28 @@ const PremiumAudioPlayerScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: { flex: 1 },
   gradient: { flex: 1 },
   loadingContainer: { justifyContent: 'center', alignItems: 'center' },
-  loadingText: { color: COLORS.TEXT, fontSize: FONTS.SIZES.MEDIUM, marginTop: SPACING.MD, textAlign: 'center', paddingHorizontal: SPACING.LG },
+  loadingText: { color: colors.TEXT, fontSize: FONTS.SIZES.MEDIUM, marginTop: SPACING.MD, textAlign: 'center', paddingHorizontal: SPACING.LG },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.LG, paddingTop: 50, paddingBottom: SPACING.LG },
   headerButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.1)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { ...TYPOGRAPHY.h3, color: COLORS.TEXT },
+  headerTitle: { ...TYPOGRAPHY.h3, color: colors.TEXT },
   coverContainer: { alignItems: 'center', marginVertical: SPACING.XL },
-  coverWrapper: { width: COVER_SIZE, height: COVER_SIZE, borderRadius: COVER_SIZE / 2, elevation: 20, shadowColor: COLORS.BUTTON, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
+  coverWrapper: { width: COVER_SIZE, height: COVER_SIZE, borderRadius: COVER_SIZE / 2, elevation: 20, shadowColor: colors.BUTTON, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
   coverImage: { width: COVER_SIZE, height: COVER_SIZE, borderRadius: COVER_SIZE / 2 },
   playingIndicator: { position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -15 }, { translateY: -15 }], width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(0, 0, 0, 0.7)', alignItems: 'center', justifyContent: 'center' },
   bookInfo: { alignItems: 'center', paddingHorizontal: SPACING.LG, marginBottom: SPACING.XL },
-  bookTitle: { ...TYPOGRAPHY.h2, color: COLORS.TEXT, textAlign: 'center', marginBottom: SPACING.SM },
-  bookAuthor: { ...TYPOGRAPHY.body, color: COLORS.TEXT, opacity: 0.8, textAlign: 'center', marginBottom: SPACING.XS },
-  chapterText: { fontSize: FONTS.SIZES.MEDIUM, color: COLORS.BUTTON, textAlign: 'center' },
+  bookTitle: { ...TYPOGRAPHY.h2, color: colors.TEXT, textAlign: 'center', marginBottom: SPACING.SM },
+  bookAuthor: { ...TYPOGRAPHY.body, color: colors.TEXT, opacity: 0.8, textAlign: 'center', marginBottom: SPACING.XS },
+  chapterText: { fontSize: FONTS.SIZES.MEDIUM, color: colors.BUTTON, textAlign: 'center' },
   progressContainer: { paddingHorizontal: SPACING.LG, marginBottom: SPACING.XL },
   timeContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.SM },
-  timeText: { fontSize: FONTS.SIZES.SMALL, color: COLORS.TEXT, opacity: 0.8 },
+  timeText: { fontSize: FONTS.SIZES.SMALL, color: colors.TEXT, opacity: 0.8 },
   progressSlider: { height: 40, marginBottom: SPACING.SM },
   progressInfo: { alignItems: 'center' },
-  progressText: { fontSize: FONTS.SIZES.SMALL, color: COLORS.TEXT, opacity: 0.7 },
+  progressText: { fontSize: FONTS.SIZES.SMALL, color: colors.TEXT, opacity: 0.7 },
   mainControls: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: SPACING.LG, marginBottom: SPACING.XL },
   chapterButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginHorizontal: SPACING.SM },
   controlButton: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255, 255, 255, 0.1)', alignItems: 'center', justifyContent: 'center', marginHorizontal: SPACING.MD },
@@ -461,24 +464,24 @@ const styles = StyleSheet.create({
   playButtonGradient: { flex: 1, borderRadius: 40, alignItems: 'center', justifyContent: 'center' },
   secondaryControls: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: SPACING.LG, marginBottom: SPACING.XL },
   secondaryButton: { alignItems: 'center', padding: SPACING.SM },
-  secondaryButtonText: { fontSize: FONTS.SIZES.SMALL, color: COLORS.TEXT, marginTop: SPACING.XS },
+  secondaryButtonText: { fontSize: FONTS.SIZES.SMALL, color: colors.TEXT, marginTop: SPACING.XS },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'center', alignItems: 'center' },
   // PHASE 2: modalContent now uses MODAL_BACKGROUND (a distinct, elevated
   // color as of this phase's design-system update) instead of the flat
   // screen BACKGROUND, same fix applied to PDFViewScreen's modals.
-  modalContent: { backgroundColor: COLORS.MODAL_BACKGROUND, borderRadius: BORDER_RADIUS.LG, padding: SPACING.LG, width: width * 0.8, maxHeight: height * 0.6 },
-  modalTitle: { ...TYPOGRAPHY.h3, color: COLORS.TEXT, textAlign: 'center', marginBottom: SPACING.LG },
+  modalContent: { backgroundColor: colors.MODAL_BACKGROUND, borderRadius: BORDER_RADIUS.LG, padding: SPACING.LG, width: width * 0.8, maxHeight: height * 0.6 },
+  modalTitle: { ...TYPOGRAPHY.h3, color: colors.TEXT, textAlign: 'center', marginBottom: SPACING.LG },
   speedOption: { padding: SPACING.MD, borderRadius: BORDER_RADIUS.MD, marginBottom: SPACING.SM, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-  speedOptionSelected: { backgroundColor: COLORS.BUTTON },
-  speedOptionText: { fontSize: FONTS.SIZES.MEDIUM, color: COLORS.TEXT, textAlign: 'center' },
-  speedOptionTextSelected: { color: COLORS.BUTTON_TEXT, fontWeight: 'bold' },
+  speedOptionSelected: { backgroundColor: colors.BUTTON },
+  speedOptionText: { fontSize: FONTS.SIZES.MEDIUM, color: colors.TEXT, textAlign: 'center' },
+  speedOptionTextSelected: { color: colors.BUTTON_TEXT, fontWeight: 'bold' },
   sleepOption: { padding: SPACING.MD, borderRadius: BORDER_RADIUS.MD, marginBottom: SPACING.SM, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-  sleepOptionText: { fontSize: FONTS.SIZES.MEDIUM, color: COLORS.TEXT, textAlign: 'center' },
+  sleepOptionText: { fontSize: FONTS.SIZES.MEDIUM, color: colors.TEXT, textAlign: 'center' },
   bookmarkItem: { flexDirection: 'row', alignItems: 'center', padding: SPACING.MD, borderRadius: BORDER_RADIUS.MD, marginBottom: SPACING.SM, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
   bookmarkInfo: { flex: 1, marginLeft: SPACING.MD },
-  bookmarkName: { fontSize: FONTS.SIZES.MEDIUM, color: COLORS.TEXT, fontWeight: 'bold' },
-  bookmarkTime: { fontSize: FONTS.SIZES.SMALL, color: COLORS.TEXT, opacity: 0.7 },
-  noBookmarksText: { fontSize: FONTS.SIZES.MEDIUM, color: COLORS.TEXT, textAlign: 'center', opacity: 0.7, marginVertical: SPACING.LG },
+  bookmarkName: { fontSize: FONTS.SIZES.MEDIUM, color: colors.TEXT, fontWeight: 'bold' },
+  bookmarkTime: { fontSize: FONTS.SIZES.SMALL, color: colors.TEXT, opacity: 0.7 },
+  noBookmarksText: { fontSize: FONTS.SIZES.MEDIUM, color: colors.TEXT, textAlign: 'center', opacity: 0.7, marginVertical: SPACING.LG },
   modalButton: { marginTop: SPACING.LG },
 });
 
