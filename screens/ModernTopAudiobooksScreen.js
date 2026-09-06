@@ -9,12 +9,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { Text } from 'react-native';
-import { Button } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { getBooks, addToFavorites, removeFromFavorites, isFavorite } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES, GRADIENTS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - (SPACING.LG * 2);
@@ -102,7 +101,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={['rgba(250, 181, 0, 0.15)', 'rgba(2, 25, 69, 0.9)']}
+          colors={GRADIENTS.HERO}
           style={styles.cardGradient}
         >
           {/* Audio Badge */}
@@ -162,31 +161,46 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
                 <Text style={styles.categoryText}>{item.category}</Text>
               </View>
 
-              {/* Audio Info */}
-              <View style={styles.audioInfo}>
-                <MaterialCommunityIcons name="clock-outline" size={14} color={COLORS.TEXT} />
-                <Text style={styles.durationText}>~2-4 hours</Text>
-              </View>
+              {/* PHASE 2 fix (#24 real data): every single card used to
+                  show the literal fixed string "~2-4 hours" regardless of
+                  the book's actual audio length. books.audio_duration is
+                  a real column (database/schema.sql) -- shown when
+                  present, omitted entirely otherwise rather than
+                  fabricated. */}
+              {item.audio_duration ? (
+                <View style={styles.audioInfo}>
+                  <MaterialCommunityIcons name="clock-outline" size={14} color={COLORS.TEXT} />
+                  <Text style={styles.durationText}>{item.audio_duration}</Text>
+                </View>
+              ) : null}
 
-              {/* Action Buttons */}
+              {/* PHASE 2 fix: these were `Button` from react-native-paper
+                  used with `title`/`buttonStyle`/`titleStyle` -- the
+                  react-native-elements API, which paper's Button doesn't
+                  have. Paper silently ignores unrecognized props, so both
+                  buttons rendered with NO visible label -- same bug class
+                  found in ModernTopReadsScreen.js and
+                  CategoryBooksScreen.js this phase. Fixed with plain
+                  TouchableOpacity + Text using the already-correct
+                  listenButton/readButton styles below. */}
               <View style={styles.actionButtons}>
-                <Button
-                  title="🎧 Listen Now"
-                  buttonStyle={styles.listenButton}
-                  titleStyle={styles.listenButtonText}
+                <TouchableOpacity
+                  style={styles.listenButton}
                   onPress={() => navigation.navigate('AudioPlayer', { book: item })}
-                />
-                
-                <Button
-                  title="📖 Read"
-                  buttonStyle={styles.readButton}
-                  titleStyle={styles.readButtonText}
+                >
+                  <Text style={styles.listenButtonText}>🎧 Listen Now</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.readButton}
                   onPress={() => navigation.navigate('PDFViewScreen', {
                     // PHASE 1 FIX: "PDFViewer" isn't a registered route
                     // name (App.js registers "PDFViewScreen").
                     book: item, bookId: item?.id, pdfPath: item?.pdf_path || null, pdfUrl: item?.pdf_url,
                   })}
-                />
+                >
+                  <Text style={styles.readButtonText}>📖 Read</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -207,7 +221,7 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Modern Header */}
       <LinearGradient
-        colors={[COLORS.BUTTON, 'rgba(250, 181, 0, 0.8)']}
+        colors={GRADIENTS.ACCENT_BUTTON}
         style={styles.headerGradient}
       >
         <View style={styles.headerContent}>
@@ -220,12 +234,19 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
           
           <Text style={styles.headerTitle}>🎧 Top Audiobooks</Text>
           
-          <TouchableOpacity style={styles.searchButton}>
+          {/* PHASE 2 fix: had no onPress at all -- dead, non-functional
+              icon, same class fixed in ModernExploreScreen.js this phase. */}
+          <TouchableOpacity style={styles.searchButton} onPress={() => navigation.navigate('Explore')} accessibilityLabel="Search">
             <MaterialCommunityIcons name="magnify" size={24} color={COLORS.BUTTON_TEXT} />
           </TouchableOpacity>
         </View>
 
-        {/* Stats Row */}
+        {/* PHASE 2 fix (#24 real data): "∞ Hours" and "HD Quality" were
+            fixed, unmeasured labels shown regardless of the actual
+            catalog -- neither total listening hours nor audio quality is
+            tracked anywhere in this app. Replaced with a second real,
+            computed stat (distinct categories among these audiobooks)
+            instead of inventing numbers. */}
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{audiobooks.length}</Text>
@@ -233,13 +254,8 @@ const ModernTopAudiobooksScreen = ({ navigation }) => {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>∞</Text>
-            <Text style={styles.statLabel}>Hours</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>HD</Text>
-            <Text style={styles.statLabel}>Quality</Text>
+            <Text style={styles.statNumber}>{new Set(audiobooks.map((b) => b.category).filter(Boolean)).size}</Text>
+            <Text style={styles.statLabel}>Categories</Text>
           </View>
         </View>
       </LinearGradient>
@@ -465,6 +481,8 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.MD,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.SM,
+    alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
   },
   listenButtonText: {
@@ -479,6 +497,8 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.MD,
     paddingHorizontal: SPACING.MD,
     paddingVertical: SPACING.SM,
+    alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
   },
   readButtonText: {

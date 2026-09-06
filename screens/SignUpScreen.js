@@ -12,10 +12,9 @@ import {
   TextInput,
   Button,
   Card,
-  IconButton,
 } from 'react-native-paper';
 import { signUp } from '../services/supabase';
-import { COLORS, FONTS, SPACING, COMMON_STYLES } from '../constants/theme';
+import { COLORS, TYPOGRAPHY, SPACING, COMMON_STYLES } from '../constants/theme';
 
 const SignUpScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -207,24 +206,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: SPACING.LG,
   },
+  // PHASE 2: card now uses SURFACE (elevated, distinct from the flat
+  // screen BACKGROUND) -- same fix as LoginScreen.js. Title/subtitle
+  // moved onto the TYPOGRAPHY scale.
   card: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.SURFACE,
     borderRadius: 12,
     padding: SPACING.LG,
     borderWidth: 1,
     borderColor: COLORS.BORDER,
   },
   title: {
-    ...COMMON_STYLES.title,
+    ...TYPOGRAPHY.h1,
+    color: COLORS.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.SM,
   },
   subtitle: {
-    ...COMMON_STYLES.text,
+    ...TYPOGRAPHY.body,
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.XL,
-    fontSize: FONTS.SIZES.LARGE,
-    opacity: 0.8,
   },
   input: {
     marginBottom: SPACING.MD,
@@ -237,7 +239,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     ...COMMON_STYLES.buttonText,
-    fontSize: FONTS.SIZES.LARGE,
+    fontSize: TYPOGRAPHY.h3.fontSize,
   },
   linkButton: {
     marginTop: SPACING.LG,

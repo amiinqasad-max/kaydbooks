@@ -12,10 +12,9 @@ import {
   TextInput,
   Button,
   Card,
-  IconButton,
 } from 'react-native-paper';
-import { signIn } from '../services/supabase';
-import { COLORS, FONTS, SPACING, COMMON_STYLES } from '../constants/theme';
+import { signIn, supabase } from '../services/supabase';
+import { COLORS, TYPOGRAPHY, SPACING, COMMON_STYLES } from '../constants/theme';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -37,6 +36,27 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Login Error', error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // PHASE 2 fix (#16/#19 real functionality): before this, the only
+  // password-reset path in the whole app was buried in ProfileScreen --
+  // which requires already being signed in. A signed-out user who
+  // genuinely forgot their password had no way at all to recover their
+  // account from the login screen. Uses the same real, already-working
+  // `supabase.auth.resetPasswordForEmail` call ProfileScreen uses, not a
+  // new/fabricated capability.
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert('Enter your email', 'Type your email above first, then tap "Forgot password?" again.');
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      Alert.alert('Email sent', 'Check your email for password reset instructions.');
+    } catch (_error) {
+      Alert.alert('Error', 'Failed to send reset email.');
     }
   };
 
@@ -118,6 +138,15 @@ const LoginScreen = ({ navigation }) => {
 
             <Button
               mode="text"
+              onPress={handleForgotPassword}
+              style={styles.forgotButton}
+              textColor={COLORS.TEXT_SECONDARY}
+            >
+              Forgot password?
+            </Button>
+
+            <Button
+              mode="text"
               onPress={() => navigation.navigate('SignUp')}
               style={styles.linkButton}
               textColor={COLORS.BUTTON}
@@ -140,24 +169,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: SPACING.LG,
   },
+  // PHASE 2: card now uses SURFACE (a distinct, elevated color as of this
+  // phase's design-system update) instead of the flat screen BACKGROUND,
+  // so the auth card actually reads as a card rather than blending into
+  // the screen. Title/subtitle moved onto the TYPOGRAPHY scale.
   card: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.SURFACE,
     borderRadius: 12,
     padding: SPACING.LG,
     borderWidth: 1,
     borderColor: COLORS.BORDER,
   },
   title: {
-    ...COMMON_STYLES.title,
+    ...TYPOGRAPHY.h1,
+    color: COLORS.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.SM,
   },
   subtitle: {
-    ...COMMON_STYLES.text,
+    ...TYPOGRAPHY.body,
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.XL,
-    fontSize: FONTS.SIZES.LARGE,
-    opacity: 0.8,
   },
   input: {
     marginBottom: SPACING.MD,
@@ -171,8 +204,11 @@ const styles = StyleSheet.create({
   buttonText: {
     ...COMMON_STYLES.buttonText,
   },
+  forgotButton: {
+    marginTop: SPACING.SM,
+  },
   linkButton: {
-    marginTop: SPACING.MD,
+    marginTop: SPACING.SM,
   },
 });
 
