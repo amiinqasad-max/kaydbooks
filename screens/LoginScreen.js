@@ -14,13 +14,16 @@ import {
   Card,
 } from 'react-native-paper';
 import { signIn, supabase } from '../services/supabase';
-import { COLORS, TYPOGRAPHY, SPACING, COMMON_STYLES } from '../constants/theme';
+import { TYPOGRAPHY, SPACING, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -86,16 +89,16 @@ const LoginScreen = ({ navigation }) => {
             style={styles.input}
             theme={{ 
               colors: { 
-                primary: COLORS.BUTTON,
-                onSurface: COLORS.TEXT,
-                onSurfaceVariant: COLORS.TEXT_SECONDARY,
-                outline: COLORS.BORDER,
-                surface: COLORS.BACKGROUND,
-                surfaceVariant: COLORS.BACKGROUND,
+                primary: colors.BUTTON,
+                onSurface: colors.TEXT,
+                onSurfaceVariant: colors.TEXT_SECONDARY,
+                outline: colors.BORDER,
+                surface: colors.BACKGROUND,
+                surfaceVariant: colors.BACKGROUND,
               } 
             }}
-            textColor={COLORS.TEXT}
-            placeholderTextColor={COLORS.TEXT_SECONDARY}
+            textColor={colors.TEXT}
+            placeholderTextColor={colors.TEXT_SECONDARY}
           />
 
           <TextInput
@@ -108,21 +111,21 @@ const LoginScreen = ({ navigation }) => {
             style={styles.input}
             theme={{ 
               colors: { 
-                primary: COLORS.BUTTON,
-                onSurface: COLORS.TEXT,
-                onSurfaceVariant: COLORS.TEXT_SECONDARY,
-                outline: COLORS.BORDER,
-                surface: COLORS.BACKGROUND,
-                surfaceVariant: COLORS.BACKGROUND,
+                primary: colors.BUTTON,
+                onSurface: colors.TEXT,
+                onSurfaceVariant: colors.TEXT_SECONDARY,
+                outline: colors.BORDER,
+                surface: colors.BACKGROUND,
+                surfaceVariant: colors.BACKGROUND,
               } 
             }}
-            textColor={COLORS.TEXT}
-            placeholderTextColor={COLORS.TEXT_SECONDARY}
+            textColor={colors.TEXT}
+            placeholderTextColor={colors.TEXT_SECONDARY}
             right={
               <TextInput.Icon
                 icon={showPassword ? "eye-off" : "eye"}
                 onPress={() => setShowPassword(!showPassword)}
-                iconColor={COLORS.TEXT_SECONDARY}
+                iconColor={colors.TEXT_SECONDARY}
               />
             }
           />
@@ -140,7 +143,7 @@ const LoginScreen = ({ navigation }) => {
               mode="text"
               onPress={handleForgotPassword}
               style={styles.forgotButton}
-              textColor={COLORS.TEXT_SECONDARY}
+              textColor={colors.TEXT_SECONDARY}
             >
               Forgot password?
             </Button>
@@ -149,7 +152,7 @@ const LoginScreen = ({ navigation }) => {
               mode="text"
               onPress={() => navigation.navigate('SignUp')}
               style={styles.linkButton}
-              textColor={COLORS.BUTTON}
+              textColor={colors.BUTTON}
             >
               Don&apos;t have an account? Sign Up
             </Button>
@@ -160,9 +163,13 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
+  // COMMON_STYLES.container bakes in a static, dark-only backgroundColor
+  // at module load (constants/theme.js's COMMON_STYLES isn't theme-aware)
+  // -- override it with the live theme's background explicitly.
   container: {
     ...COMMON_STYLES.container,
+    backgroundColor: colors.BACKGROUND,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -174,21 +181,21 @@ const styles = StyleSheet.create({
   // so the auth card actually reads as a card rather than blending into
   // the screen. Title/subtitle moved onto the TYPOGRAPHY scale.
   card: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: 12,
     padding: SPACING.LG,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   title: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.SM,
   },
   subtitle: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.XL,
   },
@@ -196,7 +203,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.MD,
   },
   button: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: 25,
     paddingVertical: SPACING.SM,
     marginTop: SPACING.SM,

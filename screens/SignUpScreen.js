@@ -14,7 +14,8 @@ import {
   Card,
 } from 'react-native-paper';
 import { signUp } from '../services/supabase';
-import { COLORS, TYPOGRAPHY, SPACING, COMMON_STYLES } from '../constants/theme';
+import { TYPOGRAPHY, SPACING, COMMON_STYLES } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SignUpScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -24,6 +25,8 @@ const SignUpScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const handleSignUp = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -80,16 +83,16 @@ const SignUpScreen = ({ navigation }) => {
               style={styles.input}
               theme={{ 
                 colors: { 
-                  primary: COLORS.BUTTON,
-                  onSurface: COLORS.TEXT,
-                  onSurfaceVariant: COLORS.TEXT_SECONDARY,
-                  outline: COLORS.BORDER,
-                  surface: COLORS.BACKGROUND,
-                  surfaceVariant: COLORS.BACKGROUND,
+                  primary: colors.BUTTON,
+                  onSurface: colors.TEXT,
+                  onSurfaceVariant: colors.TEXT_SECONDARY,
+                  outline: colors.BORDER,
+                  surface: colors.BACKGROUND,
+                  surfaceVariant: colors.BACKGROUND,
                 } 
               }}
-              textColor={COLORS.TEXT}
-              placeholderTextColor={COLORS.TEXT_SECONDARY}
+              textColor={colors.TEXT}
+              placeholderTextColor={colors.TEXT_SECONDARY}
             />
 
             <TextInput
@@ -103,16 +106,16 @@ const SignUpScreen = ({ navigation }) => {
               style={styles.input}
               theme={{ 
                 colors: { 
-                  primary: COLORS.BUTTON,
-                  onSurface: COLORS.TEXT,
-                  onSurfaceVariant: COLORS.TEXT_SECONDARY,
-                  outline: COLORS.BORDER,
-                  surface: COLORS.BACKGROUND,
-                  surfaceVariant: COLORS.BACKGROUND,
+                  primary: colors.BUTTON,
+                  onSurface: colors.TEXT,
+                  onSurfaceVariant: colors.TEXT_SECONDARY,
+                  outline: colors.BORDER,
+                  surface: colors.BACKGROUND,
+                  surfaceVariant: colors.BACKGROUND,
                 } 
               }}
-              textColor={COLORS.TEXT}
-              placeholderTextColor={COLORS.TEXT_SECONDARY}
+              textColor={colors.TEXT}
+              placeholderTextColor={colors.TEXT_SECONDARY}
             />
 
             <TextInput
@@ -125,21 +128,21 @@ const SignUpScreen = ({ navigation }) => {
               style={styles.input}
               theme={{ 
                 colors: { 
-                  primary: COLORS.BUTTON,
-                  onSurface: COLORS.TEXT,
-                  onSurfaceVariant: COLORS.TEXT_SECONDARY,
-                  outline: COLORS.BORDER,
-                  surface: COLORS.BACKGROUND,
-                  surfaceVariant: COLORS.BACKGROUND,
+                  primary: colors.BUTTON,
+                  onSurface: colors.TEXT,
+                  onSurfaceVariant: colors.TEXT_SECONDARY,
+                  outline: colors.BORDER,
+                  surface: colors.BACKGROUND,
+                  surfaceVariant: colors.BACKGROUND,
                 } 
               }}
-              textColor={COLORS.TEXT}
-              placeholderTextColor={COLORS.TEXT_SECONDARY}
+              textColor={colors.TEXT}
+              placeholderTextColor={colors.TEXT_SECONDARY}
               right={
                 <TextInput.Icon
                   icon={showPassword ? "eye-off" : "eye"}
                   onPress={() => setShowPassword(!showPassword)}
-                  iconColor={COLORS.TEXT_SECONDARY}
+                  iconColor={colors.TEXT_SECONDARY}
                 />
               }
             />
@@ -154,21 +157,21 @@ const SignUpScreen = ({ navigation }) => {
               style={styles.input}
               theme={{ 
                 colors: { 
-                  primary: COLORS.BUTTON,
-                  onSurface: COLORS.TEXT,
-                  onSurfaceVariant: COLORS.TEXT_SECONDARY,
-                  outline: COLORS.BORDER,
-                  surface: COLORS.BACKGROUND,
-                  surfaceVariant: COLORS.BACKGROUND,
+                  primary: colors.BUTTON,
+                  onSurface: colors.TEXT,
+                  onSurfaceVariant: colors.TEXT_SECONDARY,
+                  outline: colors.BORDER,
+                  surface: colors.BACKGROUND,
+                  surfaceVariant: colors.BACKGROUND,
                 } 
               }}
-              textColor={COLORS.TEXT}
-              placeholderTextColor={COLORS.TEXT_SECONDARY}
+              textColor={colors.TEXT}
+              placeholderTextColor={colors.TEXT_SECONDARY}
               right={
                 <TextInput.Icon
                   icon={showConfirmPassword ? "eye-off" : "eye"}
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  iconColor={COLORS.TEXT_SECONDARY}
+                  iconColor={colors.TEXT_SECONDARY}
                 />
               }
             />
@@ -186,7 +189,7 @@ const SignUpScreen = ({ navigation }) => {
               mode="text"
               onPress={() => navigation.navigate('Login')}
               style={styles.linkButton}
-              textColor={COLORS.BUTTON}
+              textColor={colors.BUTTON}
             >
               Already have an account? Sign In
             </Button>
@@ -197,9 +200,10 @@ const SignUpScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     ...COMMON_STYLES.container,
+    backgroundColor: colors.BACKGROUND,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -210,21 +214,21 @@ const styles = StyleSheet.create({
   // screen BACKGROUND) -- same fix as LoginScreen.js. Title/subtitle
   // moved onto the TYPOGRAPHY scale.
   card: {
-    backgroundColor: COLORS.SURFACE,
+    backgroundColor: colors.SURFACE,
     borderRadius: 12,
     padding: SPACING.LG,
     borderWidth: 1,
-    borderColor: COLORS.BORDER,
+    borderColor: colors.BORDER,
   },
   title: {
     ...TYPOGRAPHY.h1,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     textAlign: 'center',
     marginBottom: SPACING.SM,
   },
   subtitle: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT_SECONDARY,
+    color: colors.TEXT_SECONDARY,
     textAlign: 'center',
     marginBottom: SPACING.XL,
   },
@@ -232,7 +236,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.MD,
   },
   button: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: 25,
     paddingVertical: SPACING.SM,
     marginTop: SPACING.SM,

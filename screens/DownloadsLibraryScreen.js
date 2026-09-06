@@ -14,7 +14,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserDownloads, removeFromUserDownloads } from '../services/supabase';
-import { COLORS, FONTS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { FONTS, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { EmptyState } from '../components/ui';
 
 const DownloadsLibraryScreen = ({ navigation }) => {
@@ -24,6 +25,8 @@ const DownloadsLibraryScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     if (user) {
@@ -167,7 +170,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
               <MaterialCommunityIcons 
                 name={item.download_type === 'audio' ? 'headphones' : 'file-pdf-box'} 
                 size={16} 
-                color={COLORS.BUTTON} 
+                color={colors.BUTTON} 
               />
               <Text style={styles.downloadType}>
                 {item.download_type.toUpperCase()}
@@ -193,7 +196,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
             <MaterialCommunityIcons 
               name={item.download_type === 'audio' ? 'play' : 'eye'} 
               size={24} 
-              color={COLORS.BUTTON} 
+              color={colors.BUTTON} 
             />
           </TouchableOpacity>
           
@@ -201,7 +204,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
             style={styles.removeButton}
             onPress={() => removeDownload(item)}
           >
-            <MaterialCommunityIcons name="delete" size={20} color={COLORS.ERROR} />
+            <MaterialCommunityIcons name="delete" size={20} color={colors.ERROR} />
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -225,11 +228,11 @@ const DownloadsLibraryScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={[COLORS.BACKGROUND, 'rgba(250, 181, 0, 0.1)']}
+          colors={[colors.BACKGROUND, 'rgba(250, 181, 0, 0.1)']}
           style={styles.gradient}
         >
           <View style={styles.loginPrompt}>
-            <MaterialCommunityIcons name="account-circle" size={80} color={COLORS.BORDER} />
+            <MaterialCommunityIcons name="account-circle" size={80} color={colors.BORDER} />
             <Text style={styles.loginTitle}>Login Required</Text>
             <Text style={styles.loginSubtitle}>Please login to view your downloads</Text>
             <TouchableOpacity
@@ -248,7 +251,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={[COLORS.BUTTON, 'rgba(250, 181, 0, 0.8)']}
+        colors={[colors.BUTTON, 'rgba(250, 181, 0, 0.8)']}
         style={styles.headerGradient}
       >
         <View style={styles.headerContent}>
@@ -256,7 +259,7 @@ const DownloadsLibraryScreen = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color={COLORS.BUTTON_TEXT} />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.BUTTON_TEXT} />
           </TouchableOpacity>
           
           <Text style={styles.headerTitle}>📥 My Downloads</Text>
@@ -292,8 +295,8 @@ const DownloadsLibraryScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.BUTTON]}
-            tintColor={COLORS.BUTTON}
+            colors={[colors.BUTTON]}
+            tintColor={colors.BUTTON}
           />
         }
         ListEmptyComponent={!loading ? renderEmptyState : null}
@@ -302,10 +305,10 @@ const DownloadsLibraryScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
   },
   gradient: {
     flex: 1,
@@ -332,7 +335,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: FONTS.SIZES.TITLE,
     fontWeight: 'bold',
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     flex: 1,
     textAlign: 'center',
   },
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
   },
   statsText: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     opacity: 0.8,
   },
   searchContainer: {
@@ -351,13 +354,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.LG,
   },
   searchInputContainer: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: colors.BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   searchInput: {
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
   },
   listContainer: {
@@ -368,7 +371,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.LG,
     overflow: 'hidden',
     elevation: 4,
-    shadowColor: COLORS.BUTTON,
+    shadowColor: colors.BUTTON,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -391,18 +394,18 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginBottom: SPACING.XS,
   },
   bookAuthor: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.8,
     marginBottom: SPACING.XS,
   },
   bookCategory: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     marginBottom: SPACING.SM,
   },
   downloadInfo: {
@@ -415,17 +418,17 @@ const styles = StyleSheet.create({
   },
   downloadType: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.BUTTON,
+    color: colors.BUTTON,
     fontWeight: 'bold',
   },
   downloadDate: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
   },
   fileSize: {
     fontSize: FONTS.SIZES.SMALL,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.6,
   },
   actions: {
@@ -456,26 +459,26 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginTop: SPACING.LG,
     marginBottom: SPACING.SM,
   },
   emptySubtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     textAlign: 'center',
     marginBottom: SPACING.XL,
     paddingHorizontal: SPACING.LG,
   },
   exploreButton: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.LG,
     paddingHorizontal: SPACING.XL,
     paddingVertical: SPACING.MD,
   },
   exploreButtonText: {
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: 'bold',
   },
@@ -488,25 +491,25 @@ const styles = StyleSheet.create({
   loginTitle: {
     fontSize: FONTS.SIZES.LARGE,
     fontWeight: 'bold',
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     marginTop: SPACING.LG,
     marginBottom: SPACING.SM,
   },
   loginSubtitle: {
     fontSize: FONTS.SIZES.MEDIUM,
-    color: COLORS.TEXT,
+    color: colors.TEXT,
     opacity: 0.7,
     textAlign: 'center',
     marginBottom: SPACING.XL,
   },
   loginButton: {
-    backgroundColor: COLORS.BUTTON,
+    backgroundColor: colors.BUTTON,
     borderRadius: BORDER_RADIUS.LG,
     paddingHorizontal: SPACING.XL,
     paddingVertical: SPACING.MD,
   },
   loginButtonText: {
-    color: COLORS.BUTTON_TEXT,
+    color: colors.BUTTON_TEXT,
     fontSize: FONTS.SIZES.MEDIUM,
     fontWeight: 'bold',
   },

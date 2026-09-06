@@ -566,12 +566,16 @@ const SettingsScreen = ({ navigation }) => {
 };
 
 const createStyles = (colors) => StyleSheet.create({
-  container: COMMON_STYLES.container,
+  // COMMON_STYLES.container/.text bake in a static, dark-only color at
+  // module load (constants/theme.js's COMMON_STYLES isn't theme-aware)
+  // -- override with the live theme's colors explicitly.
+  container: { ...COMMON_STYLES.container, backgroundColor: colors.BACKGROUND },
   scrollView: {
     flex: 1,
   },
   loadingText: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.LARGE,
   },
   section: {
@@ -670,6 +674,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   languageText: {
     ...COMMON_STYLES.text,
+    color: colors.TEXT,
     fontSize: FONTS.SIZES.LARGE,
   },
 });
