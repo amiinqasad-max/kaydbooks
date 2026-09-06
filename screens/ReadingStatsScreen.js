@@ -14,6 +14,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
+import { LoadingState } from '../components/ui';
 
 const { width } = Dimensions.get('window');
 
@@ -201,9 +202,9 @@ const ReadingStatsScreen = ({ navigation }) => {
 
 
   const chartConfig = {
-    backgroundColor: COLORS.BACKGROUND,
-    backgroundGradientFrom: COLORS.BACKGROUND,
-    backgroundGradientTo: COLORS.BACKGROUND,
+    backgroundColor: COLORS.SURFACE,
+    backgroundGradientFrom: COLORS.SURFACE,
+    backgroundGradientTo: COLORS.SURFACE,
     decimalPlaces: 0,
     color: (opacity = 1) => `rgba(250, 181, 0, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -219,8 +220,8 @@ const ReadingStatsScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.loadingText}>Loading statistics...</Text>
+      <View style={styles.container}>
+        <LoadingState label="Loading statistics..." />
       </View>
     );
   }
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.LG,
   },
   statCard: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     width: '48%',
     marginBottom: SPACING.MD,
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   progressCard: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     marginHorizontal: SPACING.LG,
     borderWidth: 1,
@@ -500,7 +501,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   chartCard: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.LG,
     marginHorizontal: SPACING.LG,
     borderWidth: 1,
@@ -524,7 +525,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.LG,
   },
   achievementCard: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.MD,
     width: '48%',
     marginBottom: SPACING.SM,

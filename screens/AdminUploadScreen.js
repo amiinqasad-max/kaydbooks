@@ -319,7 +319,7 @@ const AdminUploadScreen = () => {
                   placeholder: COLORS.TEXT_SECONDARY,
                   primary: COLORS.BUTTON,
                   outline: COLORS.BORDER,
-                  background: COLORS.BACKGROUND,
+                  background: COLORS.SURFACE,
                 }
               }}
             />
@@ -338,7 +338,7 @@ const AdminUploadScreen = () => {
                   placeholder: COLORS.TEXT_SECONDARY,
                   primary: COLORS.BUTTON,
                   outline: COLORS.BORDER,
-                  background: COLORS.BACKGROUND,
+                  background: COLORS.SURFACE,
                 }
               }}
             />
@@ -359,7 +359,7 @@ const AdminUploadScreen = () => {
                   placeholder: COLORS.TEXT_SECONDARY,
                   primary: COLORS.BUTTON,
                   outline: COLORS.BORDER,
-                  background: COLORS.BACKGROUND,
+                  background: COLORS.SURFACE,
                 }
               }}
             />
@@ -487,7 +487,7 @@ const AdminUploadScreen = () => {
                   placeholder: COLORS.TEXT_SECONDARY,
                   primary: COLORS.BUTTON,
                   outline: COLORS.BORDER,
-                  background: COLORS.BACKGROUND,
+                  background: COLORS.SURFACE,
                 }
               }}
             />
@@ -508,7 +508,7 @@ const AdminUploadScreen = () => {
                     placeholder: COLORS.TEXT_SECONDARY,
                     primary: COLORS.BUTTON,
                     outline: COLORS.BORDER,
-                    background: COLORS.BACKGROUND,
+                    background: COLORS.SURFACE,
                   }
                 }}
               />
@@ -528,7 +528,7 @@ const AdminUploadScreen = () => {
                     placeholder: COLORS.TEXT_SECONDARY,
                     primary: COLORS.BUTTON,
                     outline: COLORS.BORDER,
-                    background: COLORS.BACKGROUND,
+                    background: COLORS.SURFACE,
                   }
                 }}
               />
