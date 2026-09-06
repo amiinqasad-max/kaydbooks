@@ -58,3 +58,30 @@ update profiles set role = 'super_admin' where id = '<your-own-auth-uid>';
 then on, a `super_admin` can promote other accounts through the same
 `UPDATE`, or you can build a small "manage admins" screen once the app
 side of this work is prioritized — it is not part of Phase 0.
+
+## Phase 1.8 findings (schema reconciliation, static analysis only)
+
+No live Supabase staging project was created this phase (declined twice by
+the project owner — Phase 1.7 and 1.8 both — so every row below is
+verified by reading migrations 001-004 and `database/schema.sql` against
+every `.from(...)` call in the app, not by querying a real database).
+Fixed in `supabase/migrations/005_schema_reconciliation.sql`:
+
+| Severity | Entity | Finding | Fix |
+|---|---|---|---|
+| 🔴 CRITICAL (security) | `local_payments` | `001_subscription_tables.sql` created this table with `CREATE POLICY ... FOR INSERT WITH CHECK (auth.uid() = user_id)` and `GRANT SELECT, INSERT ON local_payments TO authenticated`. `003`'s later "staff/service-role-only" lockdown used `CREATE TABLE IF NOT EXISTS local_payments`, which is a no-op if `001` already ran — so it never dropped `001`'s policy or revoked its grant. Net effect: any signed-in user could INSERT their own `local_payments` row and then call `verify-local-payment` to grant themselves a subscription for $0 | `005` drops both of `001`'s policies and revokes `SELECT, INSERT, UPDATE, DELETE` on the table from `authenticated`/`anon`, leaving it writable only by `service_role` (the Edge Function) |
+| 🔴 CRITICAL (functional) | `downloads` | `database/schema.sql` defines columns `file_type`, `local_path`, `downloaded_at`, no `file_size`. Every app function that touches downloads (`addDownloadRecord`, `addToUserDownloads`, `getUserDownloads`, `removeFromUserDownloads`, `checkIfDownloaded`, and the Phase 1 screens built on them) uses `download_type`, `file_path`, `file_size`, `download_date` instead — confirmed zero remaining references to the old names anywhere in the app | `005` renames the three mismatched columns and adds `file_size`, matching 100% of current app code |
+| 🟡 MEDIUM | `profiles` | `SettingsScreen.js` reads/writes `theme_mode`, `language`, `notifications_enabled` — none of which any migration or `schema.sql` ever created | `005` adds all three as `ADD COLUMN IF NOT EXISTS`, covered by the existing owner-only `profiles` RLS policy from `003` (no new policy needed) |
+| 🟢 LOW (documented, not changed) | `reading_goals` | `services/supabase.js`'s `updateReadingGoals`/`getReadingGoals` reference a table with no `CREATE TABLE` anywhere in this repo, but zero screens/components call either function | Left as dead code — build the table only if/when a reading-goals UI is actually implemented |
+| 🟢 LOW (documented, not changed) | `reading_sessions` | Table and columns are correct as of `003`, but `addReadingSession` (the only writer) has zero callers anywhere in the app, so the table is always empty | `ReadingStatsScreen.js` was fixed this phase to query the *correct* table/columns instead of the wrong ones it had before, but its time-based stats will honestly read zero until something actually calls `addReadingSession` from the reader/player — that's a missing feature, not a schema bug |
+
+Verified clean this phase (app code column usage matches the migration that
+created the table, no fix needed): `favorites`, `book_bookmarks`,
+`book_notes`, `audio_bookmarks`, `chapters`, `subscriptions`.
+
+**Still true from Phase 0, still unresolved**: nobody has run the manual
+verification query above against the real production database, so the
+`users` vs `profiles` and dead-table questions in the table above remain
+open. This phase's findings are about tables that *do* exist and *are*
+actively used by the app; they don't supersede the older, still-open
+"does `users` actually exist in prod" question.

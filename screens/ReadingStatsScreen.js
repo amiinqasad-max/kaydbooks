@@ -31,21 +31,26 @@ const ReadingStatsScreen = ({ navigation }) => {
   });
   const [loading, setLoading] = useState(true);
 
+  // PHASE 1.8 FIX: `reading_sessions` rows have `created_at` (a full
+  // timestamp) and `session_duration` (seconds) -- see
+  // supabase/migrations/003_authorization_and_schema_fixes.sql. This used
+  // to filter on a `date` column and sum `duration_minutes`, neither of
+  // which exist on that table.
   const getWeeklyReadingData = async (sessions) => {
     const weeklyData = [0, 0, 0, 0, 0, 0, 0];
     const today = new Date();
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       const dateString = date.toISOString().split('T')[0];
-      
-      const dayMinutes = sessions?.filter(session => session.date === dateString)
-        .reduce((sum, session) => sum + (session.duration_minutes || 0), 0) || 0;
-      
-      weeklyData[6 - i] = dayMinutes;
+
+      const daySeconds = sessions?.filter(session => session.created_at?.startsWith(dateString))
+        .reduce((sum, session) => sum + (session.session_duration || 0), 0) || 0;
+
+      weeklyData[6 - i] = Math.round(daySeconds / 60); // minutes
     }
-    
+
     return weeklyData;
   };
 
@@ -77,9 +82,9 @@ const ReadingStatsScreen = ({ navigation }) => {
     if (hoursRead >= 10) achievements.push({ name: 'Dedicated Reader', icon: 'clock', color: COLORS.INFO });
     if (hoursRead >= 50) achievements.push({ name: 'Reading Master', icon: 'trophy', color: COLORS.BUTTON });
     
-    // Check for reading streak
+    // Check for reading streak (PHASE 1.8 FIX: `created_at`, not `date`)
     const recentDays = sessions?.filter(session => {
-      const sessionDate = new Date(session.date);
+      const sessionDate = new Date(session.created_at);
       const daysDiff = (new Date() - sessionDate) / (1000 * 60 * 60 * 24);
       return daysDiff <= 7;
     }).length || 0;
@@ -92,61 +97,78 @@ const ReadingStatsScreen = ({ navigation }) => {
   // PHASE 1.7: `function` (hoisted) instead of `const ... = async () =>`
   // (not hoisted) -- see components/PremiumGate.js for the full rationale.
   //
-  // ALSO NOTE (found while making this edit, not fixed here -- out of
-  // scope for a hoisting fix): this queries the legacy `progress` table
-  // (flagged as possibly-dead in database/SCHEMA_DRIFT_REPORT.md) and a
-  // `reading_sessions` shape (`duration_minutes`, `date`) that does not
-  // match the `reading_sessions` table this codebase actually creates in
-  // supabase/migrations/003_authorization_and_schema_fixes.sql
-  // (`session_duration`, `created_at`). This screen's stats are very
-  // likely reading from tables/columns that don't hold the data the rest
-  // of the app writes -- needs its own follow-up, separate from this pass.
+  // PHASE 1.8 FIX (database reconciliation): this used to query a
+  // `progress` table and a `reading_sessions` shape (`duration_minutes`,
+  // `date`) that don't match anything the rest of the app writes:
+  //   - Every real ebook progress write goes to `reading_progress`
+  //     (services/supabase.js's updateReadingProgressDetailed) and every
+  //     real audiobook progress write goes to `audio_progress` -- the
+  //     `progress` table (from the original database/schema.sql) has
+  //     never been written to by any code path in this app.
+  //   - `reading_sessions` IS the correct table (created by migration 003
+  //     with columns `session_duration`/`created_at`), but nothing in the
+  //     app currently calls services/supabase.js's addReadingSession() to
+  //     populate it -- so time-based stats (hours read, weekly minutes,
+  //     reading streak) are honestly zero, not broken; they need session
+  //     logging wired into the reader/player, which is a separate,
+  //     larger feature and out of scope for this reconciliation pass.
+  // Fixed to read from the tables the app actually writes (reading_progress
+  // + audio_progress, matching services/supabase.js's own getReadingStats),
+  // with the correct reading_sessions column names for when session
+  // logging is eventually added -- rather than inventing new tables/columns
+  // or fabricating numbers.
   async function loadReadingStats() {
     try {
-      // Get completed books count
-      const { data: completedBooks, error: booksError } = await supabase
-        .from('progress')
-        .select('book_id, books(category)')
-        .eq('user_id', user.id)
-        .eq('progress_percentage', 100);
+      // "Books read" and "favorite category" count completions across BOTH
+      // formats, consistent with how the rest of the app treats reading
+      // and listening as two ways to finish the same book.
+      const [readingResult, audioResult, sessionsResult] = await Promise.all([
+        supabase
+          .from('reading_progress')
+          .select('book_id, last_page, updated_at, books(category)')
+          .eq('user_id', user.id)
+          .eq('progress_percentage', 100),
+        supabase
+          .from('audio_progress')
+          .select('book_id, updated_at, books(category)')
+          .eq('user_id', user.id)
+          .eq('progress_percentage', 100),
+        // Real table, correct columns -- see the note above on why this
+        // will be empty until session logging is added.
+        supabase
+          .from('reading_sessions')
+          .select('session_duration, created_at')
+          .eq('user_id', user.id),
+      ]);
 
-      if (booksError) throw booksError;
+      if (readingResult.error) throw readingResult.error;
+      if (audioResult.error) throw audioResult.error;
+      if (sessionsResult.error) throw sessionsResult.error;
 
-      // Get total reading time
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('reading_sessions')
-        .select('duration_minutes, date')
-        .eq('user_id', user.id);
+      const completedBooks = [...(readingResult.data || []), ...(audioResult.data || [])];
+      const sessions = sessionsResult.data || [];
 
-      if (sessionsError) throw sessionsError;
+      // Pages read only has meaning for the ebook side (audio progress has
+      // no page concept) -- sum from the same reading_progress rows.
+      const pagesRead = (readingResult.data || []).reduce((sum, p) => sum + (p.last_page || 0), 0);
 
-      // Get total pages read
-      const { data: progress, error: progressError } = await supabase
-        .from('progress')
-        .select('current_page')
-        .eq('user_id', user.id);
-
-      if (progressError) throw progressError;
-
-      // Calculate stats
-      const booksRead = completedBooks?.length || 0;
-      const totalMinutes = sessions?.reduce((sum, session) => sum + (session.duration_minutes || 0), 0) || 0;
-      const hoursRead = Math.round(totalMinutes / 60 * 10) / 10;
-      const pagesRead = progress?.reduce((sum, p) => sum + (p.current_page || 0), 0) || 0;
+      const booksRead = completedBooks.length;
+      const totalSeconds = sessions.reduce((sum, session) => sum + (session.session_duration || 0), 0);
+      const hoursRead = Math.round((totalSeconds / 3600) * 10) / 10;
 
       // Find favorite category
       const categoryCount = {};
-      completedBooks?.forEach(book => {
+      completedBooks.forEach(book => {
         const category = book.books?.category || 'Unknown';
         categoryCount[category] = (categoryCount[category] || 0) + 1;
       });
-      const favoriteCategory = Object.keys(categoryCount).reduce((a, b) => 
-        categoryCount[a] > categoryCount[b] ? a : b, 'Fiction'
-      );
+      const favoriteCategory = Object.keys(categoryCount).length
+        ? Object.keys(categoryCount).reduce((a, b) => (categoryCount[a] > categoryCount[b] ? a : b))
+        : 'Not enough data yet';
 
       // Get weekly reading data (last 7 days)
       const weeklyMinutes = await getWeeklyReadingData(sessions);
-      
+
       // Get monthly books data (last 6 months)
       const monthlyBooks = await getMonthlyBooksData(completedBooks);
 
