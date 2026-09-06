@@ -721,8 +721,18 @@ export const uploadFile = async (file, bucket = 'books', folder = '') => {
       if (error.message.includes('not found') || error.message.includes('does not exist')) {
         console.log('Bucket not found, attempting to create...');
         try {
+          // PHASE 1.6 FIX: this defaulted to `public: true`, which would
+          // silently recreate the `books` bucket as fully public --
+          // undoing the entire private-bucket + signed-URL model from
+          // supabase/migrations/003_authorization_and_schema_fixes.sql --
+          // on any fresh project where this fallback happens to fire (a
+          // real, if lower-probability, risk: a normal anon/authenticated
+          // client is generally not permitted to create storage buckets at
+          // all in a correctly configured project, so this path should
+          // rarely execute, but "should rarely execute" is not the same as
+          // "safe to leave defaulting to public").
           const { error: createError } = await supabase.storage.createBucket(bucket, {
-            public: true,
+            public: false,
             allowedMimeTypes: ['image/*', 'application/pdf', 'audio/*'],
             fileSizeLimit: 52428800, // 50MB
           });

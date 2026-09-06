@@ -266,16 +266,17 @@ const DownloadsLibraryScreen = ({ navigation }) => {
         </View>
 
         {/* Search Bar */}
-        <SearchBar
+        {/* PHASE 1.6 FIX: this was <SearchBar> (capital B, the React Native
+            Elements component -- not installed in this project) instead of
+            <Searchbar>, the react-native-paper component already imported
+            above. Same crash class as SettingsScreen.js's ListItem/Overlay/
+            Input: undefined in JSX, throws the instant this screen renders. */}
+        <Searchbar
           placeholder="Search downloads..."
           onChangeText={setSearchQuery}
           value={searchQuery}
-          containerStyle={styles.searchContainer}
-          inputContainerStyle={styles.searchInputContainer}
+          style={styles.searchContainer}
           inputStyle={styles.searchInput}
-          searchIcon={{ color: COLORS.TEXT }}
-          clearIcon={{ color: COLORS.TEXT }}
-          placeholderTextColor={COLORS.TEXT}
         />
       </LinearGradient>
 

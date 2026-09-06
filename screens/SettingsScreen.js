@@ -303,235 +303,237 @@ const SettingsScreen = ({ navigation }) => {
         {/* General Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🔧 General</Text>
-          
-          <ListItem containerStyle={styles.listItem}>
-            <MaterialCommunityIcons name="theme-light-dark" size={24} color={COLORS.BUTTON} />
-            <ListItem.Content>
-              <ListItem.Title style={styles.listTitle}>Dark Theme</ListItem.Title>
-              <ListItem.Subtitle style={styles.listSubtitle}>
-                {themeMode === 'dark' ? 'Enabled' : 'Disabled'}
-              </ListItem.Subtitle>
-            </ListItem.Content>
-            <Switch
-              value={themeMode === 'dark'}
-              onValueChange={handleThemeToggle}
-              trackColor={{ false: COLORS.BORDER, true: COLORS.BUTTON }}
-              thumbColor={COLORS.TEXT}
-            />
-          </ListItem>
+
+          {/*
+            PHASE 1.6 FIX: this whole screen used <ListItem>/<Overlay>/<Input>
+            (the React Native Elements API) without ever importing that
+            library -- it isn't even a dependency of this project. Every one
+            of those tags threw "X is not defined" the instant this screen
+            rendered (caught only now, by adding ESLint -- there was no
+            device or test that had ever exercised this screen). Rewritten
+            below using react-native-paper's List.Item/Modal/TextInput/
+            Button, which ARE already imported and used correctly elsewhere
+            in this app.
+          */}
+          <List.Item
+            style={styles.listItem}
+            title="Dark Theme"
+            titleStyle={styles.listTitle}
+            description={themeMode === 'dark' ? 'Enabled' : 'Disabled'}
+            descriptionStyle={styles.listSubtitle}
+            left={() => <MaterialCommunityIcons name="theme-light-dark" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+            right={() => (
+              <Switch
+                value={themeMode === 'dark'}
+                onValueChange={handleThemeToggle}
+                trackColor={{ false: COLORS.BORDER, true: COLORS.BUTTON }}
+                thumbColor={COLORS.TEXT}
+              />
+            )}
+          />
 
           <TouchableOpacity onPress={() => setLanguagePickerVisible(true)}>
-            <ListItem containerStyle={styles.listItem}>
-              <MaterialCommunityIcons name="translate" size={24} color={COLORS.BUTTON} />
-              <ListItem.Content>
-                <ListItem.Title style={styles.listTitle}>Language</ListItem.Title>
-                <ListItem.Subtitle style={styles.listSubtitle}>{language}</ListItem.Subtitle>
-              </ListItem.Content>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />
-            </ListItem>
+            <List.Item
+              style={styles.listItem}
+              title="Language"
+              titleStyle={styles.listTitle}
+              description={language}
+              descriptionStyle={styles.listSubtitle}
+              left={() => <MaterialCommunityIcons name="translate" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+            />
           </TouchableOpacity>
 
-          <ListItem containerStyle={styles.listItem}>
-            <MaterialCommunityIcons name="bell" size={24} color={COLORS.BUTTON} />
-            <ListItem.Content>
-              <ListItem.Title style={styles.listTitle}>Notifications</ListItem.Title>
-              <ListItem.Subtitle style={styles.listSubtitle}>
-                {notificationsEnabled ? 'Enabled' : 'Disabled'}
-              </ListItem.Subtitle>
-            </ListItem.Content>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={handleNotificationsToggle}
-              trackColor={{ false: COLORS.BORDER, true: COLORS.BUTTON }}
-              thumbColor={COLORS.TEXT}
-            />
-          </ListItem>
+          <List.Item
+            style={styles.listItem}
+            title="Notifications"
+            titleStyle={styles.listTitle}
+            description={notificationsEnabled ? 'Enabled' : 'Disabled'}
+            descriptionStyle={styles.listSubtitle}
+            left={() => <MaterialCommunityIcons name="bell" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+            right={() => (
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={handleNotificationsToggle}
+                trackColor={{ false: COLORS.BORDER, true: COLORS.BUTTON }}
+                thumbColor={COLORS.TEXT}
+              />
+            )}
+          />
         </View>
 
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🧍‍♂️ Account</Text>
-          
+
           <TouchableOpacity onPress={() => setEditProfileVisible(true)}>
-            <ListItem containerStyle={styles.listItem}>
-              <MaterialCommunityIcons name="account-edit" size={24} color={COLORS.BUTTON} />
-              <ListItem.Content>
-                <ListItem.Title style={styles.listTitle}>Edit Profile</ListItem.Title>
-                <ListItem.Subtitle style={styles.listSubtitle}>Update name and email</ListItem.Subtitle>
-              </ListItem.Content>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />
-            </ListItem>
+            <List.Item
+              style={styles.listItem}
+              title="Edit Profile"
+              titleStyle={styles.listTitle}
+              description="Update name and email"
+              descriptionStyle={styles.listSubtitle}
+              left={() => <MaterialCommunityIcons name="account-edit" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setChangePasswordVisible(true)}>
-            <ListItem containerStyle={styles.listItem}>
-              <MaterialCommunityIcons name="lock-reset" size={24} color={COLORS.BUTTON} />
-              <ListItem.Content>
-                <ListItem.Title style={styles.listTitle}>Change Password</ListItem.Title>
-                <ListItem.Subtitle style={styles.listSubtitle}>Update your password</ListItem.Subtitle>
-              </ListItem.Content>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />
-            </ListItem>
+            <List.Item
+              style={styles.listItem}
+              title="Change Password"
+              titleStyle={styles.listTitle}
+              description="Update your password"
+              descriptionStyle={styles.listSubtitle}
+              left={() => <MaterialCommunityIcons name="lock-reset" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleDeleteAccount}>
-            <ListItem containerStyle={styles.listItem}>
-              <MaterialCommunityIcons name="account-remove" size={24} color={COLORS.ERROR} />
-              <ListItem.Content>
-                <ListItem.Title style={[styles.listTitle, { color: COLORS.ERROR }]}>Delete Account</ListItem.Title>
-                <ListItem.Subtitle style={styles.listSubtitle}>Permanently delete account</ListItem.Subtitle>
-              </ListItem.Content>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.ERROR} />
-            </ListItem>
+            <List.Item
+              style={styles.listItem}
+              title="Delete Account"
+              titleStyle={[styles.listTitle, { color: COLORS.ERROR }]}
+              description="Permanently delete account"
+              descriptionStyle={styles.listSubtitle}
+              left={() => <MaterialCommunityIcons name="account-remove" size={24} color={COLORS.ERROR} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.ERROR} />}
+            />
           </TouchableOpacity>
         </View>
 
         {/* App Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>⚙️ App</Text>
-          
+
           <TouchableOpacity onPress={handleClearDownloads}>
-            <ListItem containerStyle={styles.listItem}>
-              <MaterialCommunityIcons name="download-off" size={24} color={COLORS.BUTTON} />
-              <ListItem.Content>
-                <ListItem.Title style={styles.listTitle}>Clear Downloads</ListItem.Title>
-                <ListItem.Subtitle style={styles.listSubtitle}>Remove all offline content</ListItem.Subtitle>
-              </ListItem.Content>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />
-            </ListItem>
+            <List.Item
+              style={styles.listItem}
+              title="Clear Downloads"
+              titleStyle={styles.listTitle}
+              description="Remove all offline content"
+              descriptionStyle={styles.listSubtitle}
+              left={() => <MaterialCommunityIcons name="download-off" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handlePrivacyPolicy}>
-            <ListItem containerStyle={styles.listItem}>
-              <MaterialCommunityIcons name="shield-account" size={24} color={COLORS.BUTTON} />
-              <ListItem.Content>
-                <ListItem.Title style={styles.listTitle}>Privacy Policy</ListItem.Title>
-                <ListItem.Subtitle style={styles.listSubtitle}>View privacy policy</ListItem.Subtitle>
-              </ListItem.Content>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />
-            </ListItem>
+            <List.Item
+              style={styles.listItem}
+              title="Privacy Policy"
+              titleStyle={styles.listTitle}
+              description="View privacy policy"
+              descriptionStyle={styles.listSubtitle}
+              left={() => <MaterialCommunityIcons name="shield-account" size={24} color={COLORS.BUTTON} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.TEXT} />}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleLogout}>
-            <ListItem containerStyle={styles.listItem}>
-              <MaterialCommunityIcons name="logout" size={24} color={COLORS.ERROR} />
-              <ListItem.Content>
-                <ListItem.Title style={[styles.listTitle, { color: COLORS.ERROR }]}>Logout</ListItem.Title>
-                <ListItem.Subtitle style={styles.listSubtitle}>Sign out of your account</ListItem.Subtitle>
-              </ListItem.Content>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.ERROR} />
-            </ListItem>
+            <List.Item
+              style={styles.listItem}
+              title="Logout"
+              titleStyle={[styles.listTitle, { color: COLORS.ERROR }]}
+              description="Sign out of your account"
+              descriptionStyle={styles.listSubtitle}
+              left={() => <MaterialCommunityIcons name="logout" size={24} color={COLORS.ERROR} style={styles.listIcon} />}
+              right={() => <MaterialCommunityIcons name="chevron-right" size={24} color={COLORS.ERROR} />}
+            />
           </TouchableOpacity>
         </View>
       </ScrollView>
 
       {/* Edit Profile Modal */}
-      <Overlay
-        isVisible={editProfileVisible}
-        onBackdropPress={() => setEditProfileVisible(false)}
-        overlayStyle={styles.overlay}
+      <Modal
+        visible={editProfileVisible}
+        onDismiss={() => setEditProfileVisible(false)}
+        contentContainerStyle={styles.overlay}
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Edit Profile</Text>
-          
-          <Input
+
+          <TextInput
+            mode="outlined"
             label="Name"
             value={editName}
             onChangeText={setEditName}
             placeholder="Enter your name"
-            inputStyle={styles.modalInput}
-            labelStyle={styles.modalLabel}
-            placeholderTextColor={COLORS.TEXT}
+            style={styles.modalInput}
           />
-          
-          <Input
+
+          <TextInput
+            mode="outlined"
             label="Email"
             value={editEmail}
             onChangeText={setEditEmail}
             placeholder="Enter your email"
             keyboardType="email-address"
-            inputStyle={styles.modalInput}
-            labelStyle={styles.modalLabel}
-            placeholderTextColor={COLORS.TEXT}
+            style={styles.modalInput}
             editable={false}
           />
 
           <View style={styles.modalButtons}>
-            <Button
-              title="Cancel"
-              type="outline"
-              buttonStyle={styles.cancelButton}
-              titleStyle={styles.cancelButtonText}
-              onPress={() => setEditProfileVisible(false)}
-            />
-            <Button
-              title="Save"
-              buttonStyle={styles.saveButton}
-              titleStyle={styles.saveButtonText}
-              onPress={handleEditProfile}
-            />
+            <Button mode="outlined" style={styles.cancelButton} labelStyle={styles.cancelButtonText} onPress={() => setEditProfileVisible(false)}>
+              Cancel
+            </Button>
+            <Button mode="contained" style={styles.saveButton} labelStyle={styles.saveButtonText} onPress={handleEditProfile}>
+              Save
+            </Button>
           </View>
         </View>
-      </Overlay>
+      </Modal>
 
       {/* Change Password Modal */}
-      <Overlay
-        isVisible={changePasswordVisible}
-        onBackdropPress={() => setChangePasswordVisible(false)}
-        overlayStyle={styles.overlay}
+      <Modal
+        visible={changePasswordVisible}
+        onDismiss={() => setChangePasswordVisible(false)}
+        contentContainerStyle={styles.overlay}
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Change Password</Text>
-          
-          <Input
+
+          <TextInput
+            mode="outlined"
             label="New Password"
             value={newPassword}
             onChangeText={setNewPassword}
             placeholder="Enter new password"
             secureTextEntry
-            inputStyle={styles.modalInput}
-            labelStyle={styles.modalLabel}
-            placeholderTextColor={COLORS.TEXT}
+            style={styles.modalInput}
           />
-          
-          <Input
+
+          <TextInput
+            mode="outlined"
             label="Confirm Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             placeholder="Confirm new password"
             secureTextEntry
-            inputStyle={styles.modalInput}
-            labelStyle={styles.modalLabel}
-            placeholderTextColor={COLORS.TEXT}
+            style={styles.modalInput}
           />
 
           <View style={styles.modalButtons}>
-            <Button
-              title="Cancel"
-              type="outline"
-              buttonStyle={styles.cancelButton}
-              titleStyle={styles.cancelButtonText}
-              onPress={() => setChangePasswordVisible(false)}
-            />
-            <Button
-              title="Change"
-              buttonStyle={styles.saveButton}
-              titleStyle={styles.saveButtonText}
-              onPress={handleChangePassword}
-            />
+            <Button mode="outlined" style={styles.cancelButton} labelStyle={styles.cancelButtonText} onPress={() => setChangePasswordVisible(false)}>
+              Cancel
+            </Button>
+            <Button mode="contained" style={styles.saveButton} labelStyle={styles.saveButtonText} onPress={handleChangePassword}>
+              Change
+            </Button>
           </View>
         </View>
-      </Overlay>
+      </Modal>
 
       {/* Language Picker Modal */}
-      <Overlay
-        isVisible={languagePickerVisible}
-        onBackdropPress={() => setLanguagePickerVisible(false)}
-        overlayStyle={styles.overlay}
+      <Modal
+        visible={languagePickerVisible}
+        onDismiss={() => setLanguagePickerVisible(false)}
+        contentContainerStyle={styles.overlay}
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Select Language</Text>
-          
+
           {languages.map((lang) => (
             <TouchableOpacity
               key={lang.value}
@@ -550,7 +552,7 @@ const SettingsScreen = ({ navigation }) => {
             </TouchableOpacity>
           ))}
         </View>
-      </Overlay>
+      </Modal>
     </View>
   );
 };
@@ -580,6 +582,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.BORDER,
     paddingVertical: SPACING.MD,
+  },
+  listIcon: {
+    alignSelf: 'center',
+    marginLeft: SPACING.SM,
   },
   listTitle: {
     ...COMMON_STYLES.text,
