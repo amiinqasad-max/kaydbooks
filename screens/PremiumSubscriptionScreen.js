@@ -1106,8 +1106,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.LG,
   },
+  // PHASE 2: MODAL_BACKGROUND (elevated, distinct from the flat screen
+  // BACKGROUND) instead of flat BACKGROUND -- same fix applied to every
+  // other modal in the app this phase.
   subscriptionModalContent: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.MODAL_BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     width: '100%',
     maxWidth: 450,
@@ -1266,7 +1269,7 @@ const styles = StyleSheet.create({
   },
   // Local Payment Modal Styles
   localPaymentModalContent: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: COLORS.MODAL_BACKGROUND,
     borderRadius: BORDER_RADIUS.LG,
     width: '100%',
     maxWidth: 450,
