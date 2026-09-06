@@ -12,15 +12,22 @@ import { Button, TextInput, Modal, List } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { COLORS, FONTS, TYPOGRAPHY, SPACING, BORDER_RADIUS, COMMON_STYLES } from '../constants/theme';
 
 const SettingsScreen = ({ navigation }) => {
   const { user, signOut } = useAuth();
-  
+  // PHASE 2 fix: this switch used to only manage a local `themeMode`
+  // state and persist it to `profiles.theme_mode` -- nothing in the app
+  // ever read that value back to change a single rendered color, so
+  // toggling "Dark Theme" here had ZERO visible effect anywhere. Now
+  // reads/writes the real, app-wide ThemeContext (see
+  // contexts/ThemeContext.js), which components/ui/* actually consumes.
+  const { themeMode, setThemeMode } = useTheme();
+
   // Settings state
   const [profile, setProfile] = useState(null);
-  const [themeMode, setThemeMode] = useState('dark');
   const [language, setLanguage] = useState('English');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -86,7 +93,11 @@ const SettingsScreen = ({ navigation }) => {
       }
 
       setProfile(profile);
-      setThemeMode(profile.theme_mode || 'dark');
+      // theme_mode is intentionally NOT set from here -- ThemeContext
+      // already independently loads and reconciles the same
+      // profiles.theme_mode column (see contexts/ThemeContext.js);
+      // duplicating that here would just be a second, redundant read of
+      // the same value into a second place to keep in sync.
       setLanguage(profile.language || 'English');
       setNotificationsEnabled(profile.notifications_enabled !== false);
       setEditName(profile.name || '');
@@ -125,9 +136,10 @@ const SettingsScreen = ({ navigation }) => {
   };
 
   const handleThemeToggle = (value) => {
-    const newTheme = value ? 'dark' : 'light';
-    setThemeMode(newTheme);
-    updateProfileSetting('theme_mode', newTheme);
+    // ThemeContext.setThemeMode already persists to both AsyncStorage
+    // and profiles.theme_mode (see contexts/ThemeContext.js) -- no
+    // separate updateProfileSetting call needed here.
+    setThemeMode(value ? 'dark' : 'light');
   };
 
   const handleLanguageChange = (selectedLanguage) => {

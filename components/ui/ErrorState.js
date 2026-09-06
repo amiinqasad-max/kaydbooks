@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { PrimaryButton } from './PrimaryButton';
 
 /**
@@ -26,16 +27,19 @@ const ErrorState = ({
   onRetry,
   retryLabel = 'Try Again',
   style,
-}) => (
-  <View style={[styles.container, style]}>
-    <MaterialCommunityIcons name="alert-circle-outline" size={48} color={COLORS.ERROR} />
-    <Text style={styles.title}>{title}</Text>
-    <Text style={styles.message}>{message}</Text>
-    {onRetry ? (
-      <PrimaryButton label={retryLabel} onPress={onRetry} style={styles.action} />
-    ) : null}
-  </View>
-);
+}) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.container, style]}>
+      <MaterialCommunityIcons name="alert-circle-outline" size={48} color={colors.ERROR} />
+      <Text style={[styles.title, { color: colors.TEXT }]}>{title}</Text>
+      <Text style={[styles.message, { color: colors.TEXT_MUTED }]}>{message}</Text>
+      {onRetry ? (
+        <PrimaryButton label={retryLabel} onPress={onRetry} style={styles.action} />
+      ) : null}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -47,13 +51,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.TEXT,
     textAlign: 'center',
     marginTop: SPACING.MD,
   },
   message: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT_MUTED,
     textAlign: 'center',
     marginTop: SPACING.XS,
   },

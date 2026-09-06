@@ -7,6 +7,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AudioPlayerProvider } from './contexts/AudioPlayerContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import AppInitializer from './components/AppInitializer';
 import { COLORS } from './constants/theme';
 import { setupReactNativeErrorHandler } from './utils/reactNativeErrorHandler';
@@ -160,6 +161,14 @@ const Navigation = () => {
   );
 };
 
+// Reads the active theme so the OS status bar (icon color, background)
+// matches whichever palette is actually active, instead of being
+// hardcoded to the dark palette regardless of the user's real choice.
+const ThemedStatusBar = () => {
+  const { colors, isDark } = useTheme();
+  return <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.BACKGROUND} />;
+};
+
 export default function App() {
 
   const paperTheme = {
@@ -177,14 +186,21 @@ export default function App() {
     <PaperProvider theme={paperTheme}>
       <LanguageProvider>
         <AuthProvider>
-          {/* Mounted once at the app root, above navigation, so the audio
-              engine and its state survive navigating between screens --
-              this is what makes a persistent mini-player and real
-              background playback possible (see contexts/AudioPlayerContext.js). */}
-          <AudioPlayerProvider>
-            <Navigation />
-          </AudioPlayerProvider>
-          <StatusBar style="light" backgroundColor={COLORS.BACKGROUND} />
+          {/* ThemeProvider needs useAuth() (to reconcile with
+              profiles.theme_mode for a signed-in user), so it must sit
+              inside AuthProvider -- see contexts/ThemeContext.js for the
+              real bug this closes (the Settings "Dark Theme" switch used
+              to persist to the database with zero visible effect). */}
+          <ThemeProvider>
+            {/* Mounted once at the app root, above navigation, so the audio
+                engine and its state survive navigating between screens --
+                this is what makes a persistent mini-player and real
+                background playback possible (see contexts/AudioPlayerContext.js). */}
+            <AudioPlayerProvider>
+              <Navigation />
+            </AudioPlayerProvider>
+            <ThemedStatusBar />
+          </ThemeProvider>
         </AuthProvider>
       </LanguageProvider>
     </PaperProvider>

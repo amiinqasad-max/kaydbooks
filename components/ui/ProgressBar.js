@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * ProgressBar -- Phase 2 shared component (#6, #20).
@@ -13,11 +13,14 @@ import { COLORS } from '../../constants/theme';
 const ProgressBar = ({
   progress = 0, // 0-100
   height = 6,
-  trackColor = COLORS.PROGRESS_BACKGROUND,
-  fillColor = COLORS.PROGRESS_FILL,
+  trackColor,
+  fillColor,
   style,
   accessibilityLabel,
 }) => {
+  const { colors } = useTheme();
+  const resolvedTrackColor = trackColor || colors.PROGRESS_BACKGROUND;
+  const resolvedFillColor = fillColor || colors.PROGRESS_FILL;
   const clamped = Math.max(0, Math.min(100, progress));
   // One-time Animated.Value init read during render is the standard RN
   // Animated pattern (same, already-reviewed precedent as
@@ -42,7 +45,7 @@ const ProgressBar = ({
 
   return (
     <View
-      style={[styles.track, { height, backgroundColor: trackColor, borderRadius: height / 2 }, style]}
+      style={[styles.track, { height, backgroundColor: resolvedTrackColor, borderRadius: height / 2 }, style]}
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped) }}
@@ -50,7 +53,7 @@ const ProgressBar = ({
       <Animated.View
         style={[
           styles.fill,
-          { backgroundColor: fillColor, borderRadius: height / 2, width: animatedWidth },
+          { backgroundColor: resolvedFillColor, borderRadius: height / 2, width: animatedWidth },
         ]}
       />
     </View>

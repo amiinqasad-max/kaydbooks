@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../../constants/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import ProgressBar from './ProgressBar';
 
 // Every cover in the app uses the same 2:3 book-cover aspect ratio
@@ -12,11 +13,12 @@ import ProgressBar from './ProgressBar';
 export const COVER_ASPECT_RATIO = 2 / 3;
 
 const CoverImage = ({ uri, width, height, style }) => {
+  const { colors } = useTheme();
   const [failed, setFailed] = React.useState(false);
   if (!uri || failed) {
     return (
-      <View style={[styles.coverFallback, { width, height }, style]}>
-        <MaterialCommunityIcons name="book-open-page-variant" size={width * 0.4} color={COLORS.TEXT_MUTED} />
+      <View style={[styles.coverFallback, { backgroundColor: colors.SURFACE_SECONDARY, width, height }, style]}>
+        <MaterialCommunityIcons name="book-open-page-variant" size={width * 0.4} color={colors.TEXT_MUTED} />
       </View>
     );
   }
@@ -39,6 +41,7 @@ const CoverImage = ({ uri, width, height, style }) => {
  * only).
  */
 export const CompactBookCard = ({ book, onPress, progress, width = 112 }) => {
+  const { colors } = useTheme();
   const height = Math.round(width / COVER_ASPECT_RATIO);
   return (
     <TouchableOpacity
@@ -49,8 +52,8 @@ export const CompactBookCard = ({ book, onPress, progress, width = 112 }) => {
       accessibilityLabel={`${book.title} by ${book.author}`}
     >
       <CoverImage uri={book.cover_url} width={width} height={height} />
-      <Text style={styles.compactTitle} numberOfLines={2}>{book.title}</Text>
-      <Text style={styles.compactAuthor} numberOfLines={1}>{book.author}</Text>
+      <Text style={[styles.compactTitle, { color: colors.TEXT }]} numberOfLines={2}>{book.title}</Text>
+      <Text style={[styles.compactAuthor, { color: colors.TEXT_MUTED }]} numberOfLines={1}>{book.author}</Text>
       {typeof progress === 'number' ? (
         <ProgressBar progress={progress} height={4} style={styles.compactProgress} />
       ) : null}
@@ -65,44 +68,46 @@ export const CompactBookCard = ({ book, onPress, progress, width = 112 }) => {
  * used a hardcoded light theme with blue/teal buttons that matched
  * nothing else in KaydBooks' dark/yellow visual identity).
  */
-const BookCard = ({ book, onPress, onReadPress, onListenPress, progress, badge }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    activeOpacity={0.85}
-    style={styles.rowCard}
-    accessibilityRole="button"
-    accessibilityLabel={`${book.title} by ${book.author}`}
-  >
-    <CoverImage uri={book.cover_url} width={72} height={108} />
-    <View style={styles.rowInfo}>
-      <Text style={styles.rowTitle} numberOfLines={2}>{book.title}</Text>
-      <Text style={styles.rowAuthor} numberOfLines={1}>by {book.author}</Text>
-      {badge}
-      {typeof progress === 'number' ? (
-        <ProgressBar progress={progress} height={4} style={styles.rowProgress} />
-      ) : null}
-      <View style={styles.actions}>
-        {onReadPress ? (
-          <TouchableOpacity onPress={onReadPress} style={styles.actionButton} accessibilityRole="button" accessibilityLabel={`Read ${book.title}`}>
-            <MaterialCommunityIcons name="book-open-variant" size={14} color={COLORS.BUTTON_TEXT} />
-            <Text style={styles.actionText}>Read</Text>
-          </TouchableOpacity>
+const BookCard = ({ book, onPress, onReadPress, onListenPress, progress, badge }) => {
+  const { colors } = useTheme();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      style={[styles.rowCard, { backgroundColor: colors.SURFACE, shadowColor: colors.SHADOW }]}
+      accessibilityRole="button"
+      accessibilityLabel={`${book.title} by ${book.author}`}
+    >
+      <CoverImage uri={book.cover_url} width={72} height={108} />
+      <View style={styles.rowInfo}>
+        <Text style={[styles.rowTitle, { color: colors.TEXT }]} numberOfLines={2}>{book.title}</Text>
+        <Text style={[styles.rowAuthor, { color: colors.TEXT_MUTED }]} numberOfLines={1}>by {book.author}</Text>
+        {badge}
+        {typeof progress === 'number' ? (
+          <ProgressBar progress={progress} height={4} style={styles.rowProgress} />
         ) : null}
-        {onListenPress ? (
-          <TouchableOpacity onPress={onListenPress} style={[styles.actionButton, styles.actionButtonSecondary]} accessibilityRole="button" accessibilityLabel={`Listen to ${book.title}`}>
-            <MaterialCommunityIcons name="headphones" size={14} color={COLORS.ACCENT} />
-            <Text style={[styles.actionText, styles.actionTextSecondary]}>Listen</Text>
-          </TouchableOpacity>
-        ) : null}
+        <View style={styles.actions}>
+          {onReadPress ? (
+            <TouchableOpacity onPress={onReadPress} style={[styles.actionButton, { backgroundColor: colors.BUTTON }]} accessibilityRole="button" accessibilityLabel={`Read ${book.title}`}>
+              <MaterialCommunityIcons name="book-open-variant" size={14} color={colors.BUTTON_TEXT} />
+              <Text style={[styles.actionText, { color: colors.BUTTON_TEXT }]}>Read</Text>
+            </TouchableOpacity>
+          ) : null}
+          {onListenPress ? (
+            <TouchableOpacity onPress={onListenPress} style={[styles.actionButton, styles.actionButtonSecondary, { borderColor: colors.ACCENT }]} accessibilityRole="button" accessibilityLabel={`Listen to ${book.title}`}>
+              <MaterialCommunityIcons name="headphones" size={14} color={colors.ACCENT} />
+              <Text style={[styles.actionText, { color: colors.ACCENT }]}>Listen</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   coverFallback: {
     borderRadius: BORDER_RADIUS.SM,
-    backgroundColor: COLORS.SURFACE_SECONDARY,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -111,20 +116,17 @@ const styles = StyleSheet.create({
   },
   compactTitle: {
     ...TYPOGRAPHY.bodySmall,
-    color: COLORS.TEXT,
     marginTop: SPACING.XS,
     fontWeight: '600',
   },
   compactAuthor: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.TEXT_MUTED,
   },
   compactProgress: {
     marginTop: SPACING.XS,
   },
   rowCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.SURFACE,
     borderRadius: BORDER_RADIUS.MD,
     padding: SPACING.SM_MD,
     marginBottom: SPACING.SM,
@@ -137,12 +139,10 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT,
     fontWeight: '700',
   },
   rowAuthor: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.TEXT_MUTED,
     marginTop: 2,
   },
   rowProgress: {
@@ -157,7 +157,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: COLORS.BUTTON,
     paddingHorizontal: SPACING.SM_MD,
     paddingVertical: 6,
     borderRadius: BORDER_RADIUS.SM,
@@ -165,15 +164,10 @@ const styles = StyleSheet.create({
   actionButtonSecondary: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: COLORS.ACCENT,
   },
   actionText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.BUTTON_TEXT,
     fontWeight: '700',
-  },
-  actionTextSecondary: {
-    color: COLORS.ACCENT,
   },
 });
 

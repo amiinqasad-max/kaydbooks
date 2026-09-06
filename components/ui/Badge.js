@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import { TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const VARIANTS = {
-  accent: { background: COLORS.ACCENT_SOFT, text: COLORS.ACCENT },
-  success: { background: 'rgba(76, 175, 80, 0.16)', text: COLORS.SUCCESS },
-  error: { background: COLORS.ERROR_LIGHT, text: COLORS.ERROR },
-  neutral: { background: COLORS.SURFACE_SECONDARY, text: COLORS.TEXT_SECONDARY },
-};
+const buildVariants = (colors) => ({
+  accent: { background: colors.ACCENT_SOFT, text: colors.ACCENT },
+  success: { background: 'rgba(76, 175, 80, 0.16)', text: colors.SUCCESS },
+  error: { background: colors.ERROR_LIGHT, text: colors.ERROR },
+  neutral: { background: colors.SURFACE_SECONDARY, text: colors.TEXT_SECONDARY },
+});
 
 /**
  * Badge -- small status label (e.g. "Downloaded", "New", "Premium").
@@ -16,30 +17,38 @@ const VARIANTS = {
  * shape, per Phase 2 #30 ("do not create duplicate versions").
  */
 export const Badge = ({ label, variant = 'accent', style }) => {
-  const colors = VARIANTS[variant] || VARIANTS.accent;
+  const { colors } = useTheme();
+  const variantColors = buildVariants(colors)[variant] || buildVariants(colors).accent;
   return (
-    <View style={[styles.badge, { backgroundColor: colors.background }, style]}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: variantColors.background }, style]}>
+      <Text style={[styles.label, { color: variantColors.text }]}>{label}</Text>
     </View>
   );
 };
 
-export const Chip = ({ label, selected = false, onPress, style }) => (
-  <TouchableOpacity
-    activeOpacity={0.75}
-    accessibilityRole="button"
-    accessibilityState={{ selected }}
-    accessibilityLabel={label}
-    style={[
-      styles.chip,
-      selected ? styles.chipSelected : styles.chipUnselected,
-      style,
-    ]}
-    onPress={onPress}
-  >
-    <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>{label}</Text>
-  </TouchableOpacity>
-);
+export const Chip = ({ label, selected = false, onPress, style }) => {
+  const { colors } = useTheme();
+  return (
+    <TouchableOpacity
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      style={[
+        styles.chip,
+        selected
+          ? { backgroundColor: colors.ACCENT, borderColor: colors.ACCENT }
+          : { backgroundColor: 'transparent', borderColor: colors.BORDER },
+        style,
+      ]}
+      onPress={onPress}
+    >
+      <Text style={[styles.chipLabel, { color: selected ? colors.BUTTON_TEXT : colors.TEXT_SECONDARY }, selected && styles.chipLabelSelected]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   badge: {
@@ -59,20 +68,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginRight: SPACING.SM,
   },
-  chipSelected: {
-    backgroundColor: COLORS.ACCENT,
-    borderColor: COLORS.ACCENT,
-  },
-  chipUnselected: {
-    backgroundColor: 'transparent',
-    borderColor: COLORS.BORDER,
-  },
   chipLabel: {
     ...TYPOGRAPHY.bodySmall,
-    color: COLORS.TEXT_SECONDARY,
   },
   chipLabelSelected: {
-    color: COLORS.BUTTON_TEXT,
     fontWeight: '700',
   },
 });

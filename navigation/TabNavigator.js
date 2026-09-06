@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import MiniPlayer from '../components/MiniPlayer';
 
 // Import screens
@@ -18,7 +18,8 @@ const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
   const { t } = useTranslation();
   const { currentLanguage } = useLanguage();
-  
+  const { colors } = useTheme();
+
   return (
     <View style={{ flex: 1 }}>
     <Tab.Navigator
@@ -40,12 +41,12 @@ const TabNavigator = () => {
 
           return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: COLORS.BUTTON,
-        tabBarInactiveTintColor: COLORS.TEXT,
+        tabBarActiveTintColor: colors.BUTTON,
+        tabBarInactiveTintColor: colors.TEXT_MUTED,
         tabBarStyle: {
-          backgroundColor: COLORS.BACKGROUND,
+          backgroundColor: colors.SURFACE,
           borderTopWidth: 1,
-          borderTopColor: COLORS.BORDER,
+          borderTopColor: colors.BORDER,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,

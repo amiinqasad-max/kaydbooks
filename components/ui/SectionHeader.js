@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * SectionHeader -- Phase 2 shared component (#6).
@@ -8,21 +9,24 @@ import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
  * Continue Reading / Recommended / Popular / New Releases rows and any
  * other horizontally-scrolling section.
  */
-const SectionHeader = ({ title, actionLabel, onActionPress, style }) => (
-  <View style={[styles.row, style]}>
-    <Text style={styles.title} accessibilityRole="header">{title}</Text>
-    {actionLabel ? (
-      <TouchableOpacity
-        onPress={onActionPress}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessibilityRole="button"
-        accessibilityLabel={actionLabel}
-      >
-        <Text style={styles.action}>{actionLabel}</Text>
-      </TouchableOpacity>
-    ) : null}
-  </View>
-);
+const SectionHeader = ({ title, actionLabel, onActionPress, style }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.row, style]}>
+      <Text style={[styles.title, { color: colors.TEXT }]} accessibilityRole="header">{title}</Text>
+      {actionLabel ? (
+        <TouchableOpacity
+          onPress={onActionPress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+        >
+          <Text style={[styles.action, { color: colors.ACCENT }]}>{actionLabel}</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   row: {
@@ -34,11 +38,9 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.TEXT,
   },
   action: {
     ...TYPOGRAPHY.bodySmall,
-    color: COLORS.ACCENT,
     fontWeight: '600',
   },
 });

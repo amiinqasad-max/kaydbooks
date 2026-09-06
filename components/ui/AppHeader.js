@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import IconButton from './IconButton';
 
 /**
@@ -10,21 +11,24 @@ import IconButton from './IconButton';
  * two trailing actions (search/avatar/etc.), so screens stop hand-rolling
  * their own header row with per-screen font sizes and spacing.
  */
-const AppHeader = ({ title, onBack, right, style }) => (
-  <View style={[styles.container, style]}>
-    <View style={styles.side}>
-      {onBack ? (
-        <IconButton
-          icon={<MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.TEXT} />}
-          onPress={onBack}
-          accessibilityLabel="Go back"
-        />
-      ) : null}
+const AppHeader = ({ title, onBack, right, style }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.container, style]}>
+      <View style={styles.side}>
+        {onBack ? (
+          <IconButton
+            icon={<MaterialCommunityIcons name="arrow-left" size={22} color={colors.TEXT} />}
+            onPress={onBack}
+            accessibilityLabel="Go back"
+          />
+        ) : null}
+      </View>
+      <Text style={[styles.title, { color: colors.TEXT }]} numberOfLines={1} accessibilityRole="header">{title}</Text>
+      <View style={[styles.side, styles.sideRight]}>{right}</View>
     </View>
-    <Text style={styles.title} numberOfLines={1} accessibilityRole="header">{title}</Text>
-    <View style={[styles.side, styles.sideRight]}>{right}</View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -46,7 +50,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.TEXT,
     flex: 1,
     textAlign: 'center',
   },

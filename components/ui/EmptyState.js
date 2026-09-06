@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { PrimaryButton } from './PrimaryButton';
 
 /**
@@ -20,16 +21,19 @@ const EmptyState = ({
   actionLabel,
   onActionPress,
   style,
-}) => (
-  <View style={[styles.container, style]}>
-    <MaterialCommunityIcons name={icon} size={56} color={COLORS.TEXT_MUTED} />
-    <Text style={styles.title}>{title}</Text>
-    {message ? <Text style={styles.message}>{message}</Text> : null}
-    {actionLabel ? (
-      <PrimaryButton label={actionLabel} onPress={onActionPress} style={styles.action} />
-    ) : null}
-  </View>
-);
+}) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.container, style]}>
+      <MaterialCommunityIcons name={icon} size={56} color={colors.TEXT_MUTED} />
+      <Text style={[styles.title, { color: colors.TEXT }]}>{title}</Text>
+      {message ? <Text style={[styles.message, { color: colors.TEXT_MUTED }]}>{message}</Text> : null}
+      {actionLabel ? (
+        <PrimaryButton label={actionLabel} onPress={onActionPress} style={styles.action} />
+      ) : null}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -41,13 +45,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.TEXT,
     textAlign: 'center',
     marginTop: SPACING.MD,
   },
   message: {
     ...TYPOGRAPHY.body,
-    color: COLORS.TEXT_MUTED,
     textAlign: 'center',
     marginTop: SPACING.XS,
   },

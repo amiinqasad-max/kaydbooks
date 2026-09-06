@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { TYPOGRAPHY, SPACING } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * LoadingState -- Phase 2 shared component (#6, #17).
@@ -9,12 +10,15 @@ import { COLORS, TYPOGRAPHY, SPACING } from '../../constants/theme';
  * SkeletonLoader's BookCardSkeleton/ShelfSkeleton for list content --
  * this is for a full screen with nothing to show the shape of.
  */
-const LoadingState = ({ label, style }) => (
-  <View style={[styles.container, style]}>
-    <ActivityIndicator size="large" color={COLORS.ACCENT} />
-    {label ? <Text style={styles.label}>{label}</Text> : null}
-  </View>
-);
+const LoadingState = ({ label, style }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.container, style]}>
+      <ActivityIndicator size="large" color={colors.ACCENT} />
+      {label ? <Text style={[styles.label, { color: colors.TEXT_MUTED }]}>{label}</Text> : null}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -24,7 +28,6 @@ const styles = StyleSheet.create({
   },
   label: {
     ...TYPOGRAPHY.bodySmall,
-    color: COLORS.TEXT_MUTED,
     marginTop: SPACING.SM,
   },
 });

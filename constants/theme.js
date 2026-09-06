@@ -51,6 +51,55 @@ export const COLORS = {
   PROGRESS_FILL: '#FAB500',
 };
 
+// =========================================================================
+// Light theme (Phase 2 #25).
+//
+// `profiles.theme_mode` has existed since Phase 1.8's migration 005, and
+// SettingsScreen.js has had a "Dark Theme" switch that reads/writes it
+// since Phase 1 -- but until this pass, nothing in the app ever *read*
+// theme_mode to change a single rendered color. The switch persisted a
+// value to the database and had zero visible effect: a real, previously
+// undiscovered "fake toggle" of exactly the kind this project has found
+// and fixed in every prior phase (see contexts/ThemeContext.js for the
+// fix and IMPORTANT SCOPE NOTE below).
+//
+// Every key here intentionally mirrors COLORS exactly (same names) so
+// ThemeContext can hand out one object or the other with no consumer-
+// side branching. Not a simple inversion (Phase 2 #25 explicitly warns
+// against that) -- warmer off-white surfaces and a deeper text color
+// than pure black, so long reading sessions stay comfortable.
+// =========================================================================
+export const LIGHT_COLORS = {
+  BACKGROUND: '#FBF9F4',        // Warm off-white, not stark white -- easier on the eyes for long reading
+  SURFACE: '#FFFFFF',
+  SURFACE_ELEVATED: '#FFFFFF',
+  SURFACE_SECONDARY: '#F1EDE3',
+  TEXT: '#1C1B1A',              // Deep warm charcoal, not pure black
+  TEXT_SECONDARY: '#5B5750',
+  TEXT_MUTED: '#8A857A',
+  BUTTON: '#B8860B',            // Darker gold -- #FAB500 fails contrast on a light background
+  BUTTON_TEXT: '#FFFFFF',
+  BUTTON_LIGHT: 'rgba(184, 134, 11, 0.14)',
+  ACCENT: '#B8860B',
+  ACCENT_SOFT: 'rgba(184, 134, 11, 0.12)',
+
+  CARD_BACKGROUND: '#FFFFFF',
+  SECTION_BACKGROUND: '#FBF9F4',
+  MODAL_BACKGROUND: '#FFFFFF',
+  SHADOW: 'rgba(28, 27, 26, 0.12)',
+  BORDER: '#E4DFD3',
+  DIVIDER: '#EDE8DC',
+
+  ERROR: '#C0392B',
+  ERROR_LIGHT: 'rgba(192, 57, 43, 0.12)',
+  WARNING: '#B8860B',
+  INFO: '#2E7D5B',
+  SUCCESS: '#2E7D32',
+
+  PROGRESS_BACKGROUND: 'rgba(28, 27, 26, 0.1)',
+  PROGRESS_FILL: '#B8860B',
+};
+
 // Named gradients so screens stop hand-rolling copies of the same pair of
 // colors with slightly different opacities. Use these instead of a new
 // inline `colors={[...]}` literal.
@@ -59,6 +108,15 @@ export const GRADIENTS = {
   HERO_STRONG: ['rgba(250, 181, 0, 0.22)', 'rgba(2, 25, 69, 0.92)'],
   ACCENT_BUTTON: ['#FAB500', 'rgba(250, 181, 0, 0.8)'],
   SURFACE_FADE: [COLORS.BACKGROUND, 'rgba(250, 181, 0, 0.08)'],
+};
+
+// Light-theme equivalents of the gradients above, for the (currently
+// small) set of theme-aware consumers -- see ThemeContext.
+export const LIGHT_GRADIENTS = {
+  HERO: ['rgba(184, 134, 11, 0.08)', 'rgba(255, 255, 255, 0.96)'],
+  HERO_STRONG: ['rgba(184, 134, 11, 0.16)', 'rgba(255, 255, 255, 0.96)'],
+  ACCENT_BUTTON: ['#B8860B', 'rgba(184, 134, 11, 0.85)'],
+  SURFACE_FADE: [LIGHT_COLORS.BACKGROUND, 'rgba(184, 134, 11, 0.05)'],
 };
 
 export const FONTS = {

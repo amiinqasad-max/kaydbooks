@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { COLORS, BORDER_RADIUS, SPACING } from '../../constants/theme';
+import { BORDER_RADIUS, SPACING } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * SkeletonLoader -- Phase 2 shared component (#6, #17).
@@ -11,6 +12,7 @@ import { COLORS, BORDER_RADIUS, SPACING } from '../../constants/theme';
  * shimmer-sweep gradient -- cheaper to run and less distracting.
  */
 const Pulse = ({ style }) => {
+  const { colors } = useTheme();
   // One-time Animated.Value init read during render, the standard RN
   // Animated pattern (same reviewed precedent as
   // AudioPlayerContext.js/ProgressBar.js); not React state, and reading
@@ -29,7 +31,7 @@ const Pulse = ({ style }) => {
     return () => loop.stop();
   }, [opacity]);
 
-  return <Animated.View style={[styles.block, { opacity }, style]} />;
+  return <Animated.View style={[styles.block, { backgroundColor: colors.SURFACE_SECONDARY, opacity }, style]} />;
 };
 
 /** A single skeleton row shaped like a horizontal book card (cover + two lines). */
@@ -54,7 +56,6 @@ export const ShelfSkeleton = ({ count = 4 }) => (
 
 const styles = StyleSheet.create({
   block: {
-    backgroundColor: COLORS.SURFACE_SECONDARY,
     borderRadius: BORDER_RADIUS.SM,
   },
   bookRow: {

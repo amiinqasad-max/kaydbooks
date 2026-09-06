@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * ScreenContainer -- Phase 2 shared component (#6).
@@ -15,17 +15,19 @@ import { COLORS } from '../../constants/theme';
 const ScreenContainer = ({
   children,
   edges = ['top', 'bottom'],
-  backgroundColor = COLORS.BACKGROUND,
+  backgroundColor,
   style,
 }) => {
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const resolvedBackground = backgroundColor || colors.BACKGROUND;
   const paddingTop = edges.includes('top') ? 0 : insets.top;
   const paddingBottom = edges.includes('bottom') ? 0 : insets.bottom;
 
   return (
     <SafeAreaView
       edges={edges}
-      style={[styles.container, { backgroundColor, paddingTop, paddingBottom }, style]}
+      style={[styles.container, { backgroundColor: resolvedBackground, paddingTop, paddingBottom }, style]}
     >
       <View style={styles.inner}>{children}</View>
     </SafeAreaView>
