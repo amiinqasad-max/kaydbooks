@@ -11,7 +11,14 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import Pdf from 'react-native-pdf';
+// PdfRenderer resolves to components/PdfRenderer.native.js (wraps the
+// real react-native-pdf) on iOS/Android, or components/PdfRenderer.web.js
+// (an honest "not available on web yet" fallback, no react-native-pdf
+// import at all) on web -- Metro/Expo pick the file automatically based
+// on the platform suffix, so this screen's own code and behavior is
+// unchanged for native; only web gets a different, real implementation
+// instead of a hard bundler failure.
+import PdfRenderer from '../components/PdfRenderer';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import debounce from 'lodash.debounce';
@@ -273,7 +280,7 @@ const PDFViewScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={() => setControlsVisible((v) => !v)}>
         <View style={StyleSheet.absoluteFill}>
-          <Pdf
+          <PdfRenderer
             ref={pdfRef}
             source={source}
             page={initialPageRef.current}
